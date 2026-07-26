@@ -1,0 +1,196 @@
+import type { PlaylistEntry, ResolvedTrack } from "./itunes";
+import { nextPlayableIndex } from "./playlist";
+
+type PlayerTrack = PlaylistEntry & Partial<ResolvedTrack>;
+
+interface PlayerControllerOptions {
+  playlist: PlaylistEntry[];
+  resolve: (entry: PlaylistEntry) => Promise<ResolvedTrack>;
+  createAudio?: () => HTMLAudioElement;
+}
+
+export function createPlayerController({
+  playlist,
+  resolve,
+  createAudio = () => new Audio(),
+}: PlayerControllerOptions) {
+  const tracks = $state<PlayerTrack[]>(playlist.map((track) => ({ ...track })));
+  let current = $state(0);
+  let touched = false;
+  let playing = $state(false);
+  let listOpen = $state(false);
+  let currentTime = $state(0);
+  let duration = $state(0);
+  let failedAll = $state(false);
+  let audio: HTMLAudioElement | undefined;
+  let initialized = false;
+  let disposed = false;
+  let generation = 0;
+
+  const onPlay = () => (playing = true);
+  const onPause = () => (playing = false);
+  const onTimeUpdate = () => {
+    if (audio) currentTime = audio.currentTime;
+  };
+  const onLoadedMetadata = () => {
+    if (audio) duration = audio.duration || 30;
+  };
+  const onEnded = () => step(1);
+
+  function initialize() {
+    if (initialized || disposed) return;
+    initialized = true;
+    const instance = createAudio();
+    audio = instance;
+    instance.preload = "none";
+    instance.addEventListener("play", onPlay);
+    instance.addEventListener("pause", onPause);
+    instance.addEventListener("timeupdate", onTimeUpdate);
+    instance.addEventListener("loadedmetadata", onLoadedMetadata);
+    instance.addEventListener("ended", onEnded);
+
+    const run = ++generation;
+    for (const [index, entry] of tracks.entries()) {
+      resolve(entry).then(
+        (resolved) => {
+          if (disposed || run !== generation) return;
+          tracks[index] = { ...entry, ...resolved };
+          failedAll = false;
+          if (!touched) {
+            const first = tracks.findIndex((track) => track.preview);
+            if (first >= 0) current = first;
+          }
+        },
+        () => {
+          if (disposed || run !== generation) return;
+          if (!touched && tracks.every((track) => !track.preview)) {
+            failedAll = true;
+          }
+        },
+      );
+    }
+  }
+
+  function load(index: number, autoplay: boolean) {
+    const track = tracks[index];
+    if (!audio || !track?.preview) return;
+    touched = true;
+    current = index;
+    audio.src = track.preview;
+    currentTime = 0;
+    duration = 0;
+    if (autoplay) void audio.play().catch(() => {});
+  }
+
+  function togglePlay() {
+    if (!audio || !controller.ready) return;
+    if (!audio.src) load(current, true);
+    else if (audio.paused) void audio.play().catch(() => {});
+    else audio.pause();
+  }
+
+  function pause() {
+    audio?.pause();
+  }
+
+  function step(direction: 1 | -1) {
+    if (!controller.ready) return;
+    const next = nextPlayableIndex(
+      tracks.map((track) => Boolean(track.preview)),
+      current,
+      direction,
+    );
+    if (next !== null) load(next, true);
+  }
+
+  function seek(fraction: number) {
+    if (!audio?.duration) return;
+    audio.currentTime = Math.min(1, Math.max(0, fraction)) * audio.duration;
+  }
+
+  function selectTrack(index: number, closeList = false) {
+    load(index, true);
+    if (closeList) listOpen = false;
+  }
+
+  function reset() {
+    audio?.pause();
+    audio?.removeAttribute("src");
+    current = 0;
+    touched = false;
+    playing = false;
+    listOpen = false;
+    currentTime = 0;
+    duration = 0;
+  }
+
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    generation += 1;
+    if (!audio) return;
+    audio.removeEventListener("play", onPlay);
+    audio.removeEventListener("pause", onPause);
+    audio.removeEventListener("timeupdate", onTimeUpdate);
+    audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+    audio.removeEventListener("ended", onEnded);
+    audio.pause();
+    audio.removeAttribute("src");
+    audio = undefined;
+  }
+
+  const controller = {
+    initialize,
+    dispose,
+    pause,
+    reset,
+    togglePlay,
+    step,
+    seek,
+    selectTrack,
+    get tracks() {
+      return tracks;
+    },
+    get current() {
+      return current;
+    },
+    get playing() {
+      return playing;
+    },
+    get listOpen() {
+      return listOpen;
+    },
+    set listOpen(value: boolean) {
+      listOpen = value;
+    },
+    get currentTime() {
+      return currentTime;
+    },
+    get duration() {
+      return duration;
+    },
+    get ready() {
+      return tracks.some((track) => track.preview);
+    },
+    get title() {
+      return failedAll
+        ? "preview unavailable"
+        : (tracks[current]?.title ?? "loading…");
+    },
+    get artist() {
+      return failedAll
+        ? "check your connection"
+        : (tracks[current]?.artist ?? "");
+    },
+    get progress() {
+      return duration ? currentTime / duration : 0;
+    },
+    get counter() {
+      return `${String(current + 1).padStart(2, "0")} / ${String(tracks.length).padStart(2, "0")}`;
+    },
+  };
+
+  return controller;
+}
+
+export type PlayerController = ReturnType<typeof createPlayerController>;

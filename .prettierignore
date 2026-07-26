@@ -1,0 +1,12 @@
+aseprite/
+coverage/
+dist/
+node_modules/
+package-lock.json
+playwright-report/
+public/map/
+test-results/
+*.jpeg
+*.png
+*.pmtiles
+*.aseprite
