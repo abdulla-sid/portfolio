@@ -1,54 +1,78 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, waitFor } from "@testing-library/svelte";
 import { EXPERIENCES } from "./experiences";
 
-const h = vi.hoisted(() => ({ flyTo: vi.fn() }));
+vi.mock("maplibre-gl", async () =>
+  (await import("../../test/mocks/maplibre")).createMapLibreMock(),
+);
+vi.mock("pmtiles", async () =>
+  (await import("../../test/mocks/maplibre")).createPMTilesMock(),
+);
 
-vi.mock("maplibre-gl", () => {
-  class Marker {
-    setLngLat() {
-      return this;
-    }
-    addTo() {
-      return this;
-    }
-    remove() {}
-  }
-  class Map {
-    touchZoomRotate = { disableRotation() {} };
-    keyboard = { disable() {} };
-    on() {
-      return this;
-    }
-    flyTo = h.flyTo;
-    setPixelRatio() {}
-    remove() {}
-  }
-  const addProtocol = vi.fn();
-  return { default: { Map, Marker, addProtocol }, Map, Marker, addProtocol };
-});
-vi.mock("pmtiles", () => ({
-  Protocol: class {
-    tile = () => {};
-  },
-}));
-
+import { mapFlyTo, resetMapLibreMock } from "../../test/mocks/maplibre";
 import ExperiencePanel from "./ExperiencePanel.svelte";
 
+const LAST = EXPERIENCES.length - 1;
+
+afterEach(resetMapLibreMock);
+
 describe("ExperiencePanel", () => {
-  it("clicking an entry selects it and flies the map to its location", async () => {
-    const { container } = render(ExperiencePanel);
+  it("steps through entries with the arrow keys without wrapping past either end", async () => {
+    const { container, getByRole } = render(ExperiencePanel);
     await waitFor(() => expect(container.querySelector(".map")).not.toBeNull());
 
-    const first = container.querySelector(".entry") as HTMLButtonElement;
-    await fireEvent.click(first);
+    const newer = getByRole("button", { name: "Previous experience" });
+    const older = getByRole("button", { name: "Next experience" });
 
-    expect(first.classList.contains("selected")).toBe(true);
-    const loc = EXPERIENCES[0].location;
+    const newest = EXPERIENCES[0].location;
     await waitFor(() =>
-      expect(h.flyTo).toHaveBeenCalledWith(
-        expect.objectContaining({ center: [loc.lng, loc.lat] }),
+      expect(mapFlyTo).toHaveBeenCalledWith(
+        expect.objectContaining({ center: [newest.lng, newest.lat] }),
       ),
+    );
+    expect(newer).toBeDisabled();
+
+    await fireEvent.keyDown(older, { key: "ArrowRight" });
+    expect(getByRole("heading", { level: 2 })).toHaveTextContent(
+      EXPERIENCES[1].title,
+    );
+
+    await fireEvent.keyDown(older, { key: "ArrowRight" });
+    expect(getByRole("heading", { level: 2 })).toHaveTextContent(
+      EXPERIENCES[LAST].title,
+    );
+    expect(older).toBeDisabled();
+
+    await fireEvent.keyDown(newer, { key: "ArrowRight" });
+    expect(getByRole("heading", { level: 2 })).toHaveTextContent(
+      EXPERIENCES[LAST].title,
+    );
+
+    await fireEvent.keyDown(newer, { key: "ArrowLeft" });
+    expect(getByRole("heading", { level: 2 })).toHaveTextContent(
+      EXPERIENCES[LAST - 1].title,
+    );
+    expect(older).toBeEnabled();
+  });
+
+  it("hands focus to the opposite paddle when the pressed one reaches its boundary", async () => {
+    const { container, getByRole } = render(ExperiencePanel);
+    await waitFor(() => expect(container.querySelector(".map")).not.toBeNull());
+
+    const newer = getByRole("button", { name: "Previous experience" });
+    const older = getByRole("button", { name: "Next experience" });
+
+    older.focus();
+    for (let step = 0; step < LAST; step += 1) {
+      await fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+    }
+
+    expect(older).toBeDisabled();
+    expect(document.activeElement).toBe(newer);
+
+    await fireEvent.keyDown(document.activeElement!, { key: "ArrowLeft" });
+    expect(getByRole("heading", { level: 2 })).toHaveTextContent(
+      EXPERIENCES[LAST - 1].title,
     );
   });
 });

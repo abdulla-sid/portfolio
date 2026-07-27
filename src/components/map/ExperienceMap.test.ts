@@ -2,62 +2,27 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/svelte";
 import { tick } from "svelte";
 
-const h = vi.hoisted(() => ({
-  flyTo: vi.fn(),
-  setStyle: vi.fn(),
-  setMaxBounds: vi.fn(),
-  jumpTo: vi.fn(),
-  throwOnInit: false,
-  remove: vi.fn(),
-}));
+vi.mock("maplibre-gl", async () =>
+  (await import("../../test/mocks/maplibre")).createMapLibreMock(),
+);
+vi.mock("pmtiles", async () =>
+  (await import("../../test/mocks/maplibre")).createPMTilesMock(),
+);
 
-vi.mock("maplibre-gl", () => {
-  class Marker {
-    setLngLat() {
-      return this;
-    }
-    addTo() {
-      return this;
-    }
-    remove() {}
-  }
-  class Map {
-    touchZoomRotate = { disableRotation() {} };
-    keyboard = { disable() {} };
-    constructor() {
-      if (h.throwOnInit) throw new Error("no webgl");
-    }
-    on() {
-      return this;
-    }
-
-    once(_event: string, cb: () => void) {
-      cb();
-      return this;
-    }
-    off() {
-      return this;
-    }
-    flyTo = h.flyTo;
-    setStyle = h.setStyle;
-    setMaxBounds = h.setMaxBounds;
-    jumpTo = h.jumpTo;
-    remove = h.remove;
-  }
-  const addProtocol = vi.fn();
-  return { default: { Map, Marker, addProtocol }, Map, Marker, addProtocol };
-});
-vi.mock("pmtiles", () => ({
-  Protocol: class {
-    tile = () => {};
-  },
-}));
-
+import {
+  mapFlyTo,
+  mapInit,
+  mapJumpTo,
+  mapRemove,
+  mapSetMaxBounds,
+  mapSetStyle,
+  resetMapLibreMock,
+} from "../../test/mocks/maplibre";
 import ExperienceMap from "./ExperienceMap.svelte";
 
 afterEach(() => {
   vi.useRealTimers();
-  h.remove.mockClear();
+  resetMapLibreMock();
 });
 
 describe("ExperienceMap", () => {
@@ -93,54 +58,50 @@ describe("ExperienceMap", () => {
       focus: null,
       selectedId: null,
     });
-    h.flyTo.mockClear();
-    h.setStyle.mockClear();
+    resetMapLibreMock();
     await rerender({
       focus: { lng: 74.4, lat: 31.5, city: "lahore" },
       selectedId: "carbonteq",
     });
-    expect(h.flyTo).toHaveBeenCalledWith(
+    expect(mapFlyTo).toHaveBeenCalledWith(
       expect.objectContaining({ center: [74.4, 31.5] }),
     );
-    expect(h.setStyle).not.toHaveBeenCalled();
+    expect(mapSetStyle).not.toHaveBeenCalled();
 
-    h.flyTo.mockClear();
-    h.setStyle.mockClear();
-    h.setMaxBounds.mockClear();
-    h.jumpTo.mockClear();
+    resetMapLibreMock();
     await rerender({
       focus: { lng: 72.9918, lat: 33.6448, city: "islamabad" },
       selectedId: "nust",
     });
-    await vi.waitFor(() => expect(h.setStyle).toHaveBeenCalled());
+    await vi.waitFor(() => expect(mapSetStyle).toHaveBeenCalled());
 
-    expect(JSON.stringify(h.setStyle.mock.calls[0])).toContain(
+    expect(JSON.stringify(mapSetStyle.mock.calls[0])).toContain(
       "islamabad.pmtiles",
     );
-    expect(h.setMaxBounds).toHaveBeenCalledWith([
+    expect(mapSetMaxBounds).toHaveBeenCalledWith([
       [72.9, 33.52],
       [73.25, 33.78],
     ]);
 
-    expect(h.jumpTo).toHaveBeenCalledWith({
+    expect(mapJumpTo).toHaveBeenCalledWith({
       center: [72.9918, 33.6448],
       zoom: 11.5,
     });
-    expect(h.flyTo).not.toHaveBeenCalled();
+    expect(mapFlyTo).not.toHaveBeenCalled();
 
-    h.setStyle.mockClear();
+    resetMapLibreMock();
     await rerender({
       focus: { lng: 74.423, lat: 31.4683, city: "lahore" },
       selectedId: "carbonteq",
     });
-    await vi.waitFor(() => expect(h.setStyle).toHaveBeenCalled());
-    expect(JSON.stringify(h.setStyle.mock.calls[0])).toContain(
+    await vi.waitFor(() => expect(mapSetStyle).toHaveBeenCalled());
+    expect(JSON.stringify(mapSetStyle.mock.calls[0])).toContain(
       "lahore.pmtiles",
     );
   });
 
   it("shows the fallback state when the map cannot initialize", () => {
-    h.throwOnInit = true;
+    mapInit.throwOnConstruct = true;
     const { container } = render(ExperienceMap, {
       focus: null,
       selectedId: null,
@@ -149,7 +110,6 @@ describe("ExperienceMap", () => {
     expect(container.querySelector(".fallback")!.textContent).toContain(
       "MAP UNAVAILABLE",
     );
-    h.throwOnInit = false;
   });
 
   it("lets the latest focus cancel a city swap before stale tiles apply", async () => {
@@ -158,8 +118,7 @@ describe("ExperienceMap", () => {
       focus: null,
       selectedId: null,
     });
-    h.flyTo.mockClear();
-    h.setStyle.mockClear();
+    resetMapLibreMock();
 
     await rerender({
       focus: { lng: 72.9918, lat: 33.6448, city: "islamabad" },
@@ -171,27 +130,26 @@ describe("ExperienceMap", () => {
     });
     await vi.runAllTimersAsync();
 
-    expect(h.setStyle).not.toHaveBeenCalled();
-    expect(h.flyTo).toHaveBeenLastCalledWith(
+    expect(mapSetStyle).not.toHaveBeenCalled();
+    expect(mapFlyTo).toHaveBeenLastCalledWith(
       expect.objectContaining({ center: [74.4, 31.5] }),
     );
   });
 
   it("cancels dissolve work when unmounted", async () => {
     vi.useFakeTimers();
-    h.remove.mockClear();
     const { rerender, unmount } = render(ExperienceMap, {
       focus: null,
       selectedId: null,
     });
-    h.setStyle.mockClear();
+    resetMapLibreMock();
     await rerender({
       focus: { lng: 72.9918, lat: 33.6448, city: "islamabad" },
       selectedId: "nust",
     });
     await unmount();
     await vi.runAllTimersAsync();
-    expect(h.setStyle).not.toHaveBeenCalled();
-    expect(h.remove).toHaveBeenCalledTimes(1);
+    expect(mapSetStyle).not.toHaveBeenCalled();
+    expect(mapRemove).toHaveBeenCalledTimes(1);
   });
 });

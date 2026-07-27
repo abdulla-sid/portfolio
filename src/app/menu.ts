@@ -1,6 +1,3 @@
-export const MOBILE_BREAKPOINT_PX = 900;
-export const MOBILE_MEDIA_QUERY = `(max-width: ${MOBILE_BREAKPOINT_PX}px)`;
-
 export const MENU_ITEMS = [
   { id: "about", label: "ABOUT ME" },
   { id: "projects", label: "PROJECTS" },

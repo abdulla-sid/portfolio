@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { MENU_ITEMS, MOBILE_MEDIA_QUERY, type MenuId } from "../../app/menu";
+  import { MENU_ITEMS, type MenuId } from "../../app/menu";
   import { prefersReducedMotion } from "../../lib/motion";
   import { createMenuMachine, type MenuState } from "./machine";
 
@@ -19,7 +19,7 @@
   let menuState: MenuState | null = $state(null);
   let buttons = $state<HTMLButtonElement[]>([]);
   let mobileOpen = $state(false);
-  let mobileCommitTimer: ReturnType<typeof setTimeout> | undefined;
+  let commitTimer: ReturnType<typeof setTimeout> | undefined;
 
   const machine = createMenuMachine(
     MENU_ITEMS.length,
@@ -91,22 +91,14 @@
   }
 
   function onClick(i: number) {
-    if (globalThis.matchMedia?.(MOBILE_MEDIA_QUERY).matches) {
-      machine.activate(i);
-      mobileOpen = false;
-      clearTimeout(mobileCommitTimer);
-      mobileCommitTimer = setTimeout(() => commit(i), reduceMotion ? 0 : 120);
-      return;
-    }
-    if (menuState?.phase === "selected" && menuState.index === i) {
-      commit(i);
-      return;
-    }
     machine.activate(i);
+    mobileOpen = false;
+    clearTimeout(commitTimer);
+    commitTimer = setTimeout(() => commit(i), reduceMotion ? 0 : 120);
   }
 
   onDestroy(() => {
-    clearTimeout(mobileCommitTimer);
+    clearTimeout(commitTimer);
     machine.dispose();
   });
 </script>

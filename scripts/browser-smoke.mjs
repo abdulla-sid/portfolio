@@ -45,8 +45,6 @@ async function clickFirstMenuItem(page) {
 
 async function openAboutOnDesktop(page) {
   await clickFirstMenuItem(page);
-  await new Promise((resolve) => setTimeout(resolve, 220));
-  await clickFirstMenuItem(page);
   await page.waitForSelector(ABOUT_DIALOG, { visible: true });
 }
 

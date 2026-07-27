@@ -1,99 +1,325 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import { EXPERIENCES } from "./experiences";
-  import type { MapFocus } from "./geo";
 
   const mapModule = import("./ExperienceMap.svelte");
+  const lastIndex = EXPERIENCES.length - 1;
 
-  let selectedId = $state<string | null>(null);
-  let focus = $state<MapFocus | null>(null);
+  let activeIndex = $state(0);
+  let newerPaddle = $state<HTMLButtonElement>();
+  let olderPaddle = $state<HTMLButtonElement>();
 
-  function select(id: string) {
-    selectedId = id;
-    const entry = EXPERIENCES.find((e) => e.id === id)!;
+  const activeExperience = $derived(EXPERIENCES[activeIndex]);
+  const selectedId = $derived(activeExperience.id);
+  const focus = $derived({
+    ...activeExperience.location,
+    city: activeExperience.city,
+  });
+  const canGoNewer = $derived(activeIndex > 0);
+  const canGoOlder = $derived(activeIndex < lastIndex);
 
-    focus = { ...entry.location, city: entry.city };
+  function goTo(index: number) {
+    activeIndex = Math.max(0, Math.min(index, lastIndex));
+  }
+
+  async function onPagerKeydown(event: KeyboardEvent) {
+    const step =
+      event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+    if (step === 0) return;
+
+    event.preventDefault();
+    goTo(activeIndex + step);
+
+    await tick();
+    const [pressed, opposite] =
+      step < 0 ? [newerPaddle, olderPaddle] : [olderPaddle, newerPaddle];
+    if (pressed?.disabled) opposite?.focus();
   }
 </script>
 
 <div class="split">
-  <ul class="entries">
-    {#each EXPERIENCES as e (e.id)}
-      <li>
-        <button
-          class="entry"
-          class:selected={selectedId === e.id}
-          type="button"
-          data-no-drag
-          onclick={() => select(e.id)}
-        >
-          <span class="role">{e.title}</span>
-          <span class="org">{e.org}</span>
-          <span class="dates">{e.dates}</span>
-        </button>
-      </li>
-    {/each}
-  </ul>
+  <button
+    bind:this={newerPaddle}
+    class="paddle prev"
+    type="button"
+    aria-label="Previous experience"
+    data-no-drag
+    disabled={!canGoNewer}
+    onclick={() => goTo(activeIndex - 1)}
+    onkeydown={onPagerKeydown}
+  >
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M10 3 5 8l5 5"></path>
+    </svg>
+  </button>
+
+  <section class="page" aria-label="Experience details">
+    <div class="heading">
+      <h2>{activeExperience.title}</h2>
+      <p class="org">{activeExperience.org}</p>
+      <p class="dates">{activeExperience.dates}</p>
+    </div>
+
+    <div class="narrative">
+      {#each activeExperience.narrative as paragraph}
+        <p>{paragraph}</p>
+      {/each}
+    </div>
+  </section>
+
+  <p class="announcement" aria-live="polite">
+    {activeExperience.title}, {activeExperience.org}, {activeExperience.dates}
+  </p>
 
   <div class="map-slot">
     {#await mapModule then { default: ExperienceMap }}
       <ExperienceMap {focus} {selectedId} />
     {/await}
   </div>
+
+  <button
+    bind:this={olderPaddle}
+    class="paddle next"
+    type="button"
+    aria-label="Next experience"
+    data-no-drag
+    disabled={!canGoOlder}
+    onclick={() => goTo(activeIndex + 1)}
+    onkeydown={onPagerKeydown}
+  >
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M6 3l5 5-5 5"></path>
+    </svg>
+  </button>
+
+  <ol class="rail" aria-hidden="true">
+    {#each EXPERIENCES as experience, index (experience.id)}
+      <li class="node" class:active={index === activeIndex}></li>
+    {/each}
+  </ol>
 </div>
 
 <style>
   .split {
-    display: flex;
-    gap: calc(10px * var(--hd-scale, 2));
+    --gutter: calc(10px * var(--hd-scale, 2));
+    --paddle-width: 24px;
+    --paddle-height: 106px;
+    display: grid;
+    grid-template-areas:
+      "prev text map  next"
+      ".    rail rail .";
+    grid-template-columns:
+      var(--paddle-width)
+      minmax(0, 38%)
+      minmax(0, 1fr)
+      var(--paddle-width);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--gutter);
     height: 100%;
     min-height: 0;
   }
 
-  .entries {
-    flex: 0 0 40%;
-    list-style: none;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .map-slot {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .entry {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px;
-    border: 2px solid var(--ui-accent);
+  .paddle {
+    display: grid;
+    width: var(--paddle-width);
+    height: var(--paddle-height);
+    padding: 0;
+    align-self: center;
+    place-items: center;
+    border: 2px solid var(--border-primary);
+    border-radius: 0;
     background: var(--ui-ink);
     color: var(--ui-accent);
-    font: inherit;
-    font-size: 10px;
-    line-height: 1.6;
-    text-align: left;
     cursor: pointer;
   }
 
-  .entry.selected {
-    background: var(--ui-accent);
-    color: var(--ui-ink);
+  .prev {
+    grid-area: prev;
   }
 
-  .entry:focus-visible {
+  .next {
+    grid-area: next;
+  }
+
+  .paddle:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .paddle:focus-visible {
     outline: 2px solid var(--ui-highlight);
-    outline-offset: 1px;
+    outline-offset: 2px;
   }
 
-  .role {
-    font-size: 11px;
+  .paddle svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    shape-rendering: crispEdges;
+  }
+
+  .page {
+    display: flex;
+    grid-area: text;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    color: var(--text-primary);
+  }
+
+  .heading {
+    flex: none;
+  }
+
+  h2 {
+    color: var(--ui-highlight);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .org {
+    margin-top: 6px;
+    color: var(--ui-accent);
+    font-size: 10px;
+    line-height: 1.6;
   }
 
   .dates {
-    opacity: 0.8;
+    margin-top: 6px;
+    font-size: 9px;
+    line-height: 1.6;
+    opacity: 0.72;
+  }
+
+  .narrative {
+    flex: 1;
+    min-height: 0;
+    margin-top: 18px;
+    padding-right: 8px;
+    overflow-y: auto;
+    font-size: 8px;
+    line-height: 1.8;
+    scrollbar-color: var(--ui-accent) transparent;
+    scrollbar-width: thin;
+  }
+
+  .narrative p + p {
+    margin-top: 12px;
+  }
+
+  .narrative::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .narrative::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .narrative::-webkit-scrollbar-thumb {
+    background: var(--ui-accent);
+  }
+
+  .map-slot {
+    grid-area: map;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .rail {
+    position: relative;
+    display: flex;
+    grid-area: rail;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    list-style: none;
+  }
+
+  .rail::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    left: 9px;
+    height: 2px;
+    background: var(--ui-accent-deep);
+    transform: translateY(-50%);
+  }
+
+  .node {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--ui-accent-deep);
+    background: var(--surface-page);
+  }
+
+  .node.active {
+    border-color: var(--ui-accent);
+    background: var(--ui-accent);
+  }
+
+  .announcement {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .split {
+      --gutter: 12px;
+      grid-template-areas:
+        "prev text next"
+        "prev map  next"
+        "rail rail rail";
+      grid-template-columns:
+        var(--paddle-width)
+        minmax(0, 1fr)
+        var(--paddle-width);
+      grid-template-rows: minmax(160px, 3fr) minmax(140px, 2fr) auto;
+    }
+  }
+
+  @media (max-width: 900px) {
+    h2 {
+      font-size: 12px;
+    }
+
+    .org {
+      font-size: 9px;
+    }
+
+    .dates {
+      font-size: 8px;
+    }
+
+    .narrative {
+      margin-top: 12px;
+      font-size: 7px;
+      line-height: 1.75;
+    }
+
+    .narrative p + p {
+      margin-top: 10px;
+    }
+  }
+
+  @media (max-width: 900px) and (max-height: 740px) {
+    .split {
+      --gutter: 10px;
+      --paddle-height: 80px;
+      grid-template-rows: minmax(100px, 3fr) minmax(90px, 2fr) auto;
+    }
   }
 </style>

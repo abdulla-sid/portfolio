@@ -5,26 +5,25 @@ import Menu from "./Menu.svelte";
 describe("Menu commit semantics", () => {
   afterEach(() => vi.useRealTimers());
 
-  it("requires a second click after highlighting before it commits", async () => {
+  it("commits a single click once the highlight settles", async () => {
     vi.useFakeTimers();
     const onCommit = vi.fn();
     const { getByRole } = render(Menu, { onCommit });
-    const button = getByRole("button", { name: "ABOUT ME" });
-    await fireEvent.click(button);
-    await vi.advanceTimersByTimeAsync(120);
+    await fireEvent.click(getByRole("button", { name: "ABOUT ME" }));
     expect(onCommit).not.toHaveBeenCalled();
-    await fireEvent.click(button);
+    await vi.advanceTimersByTimeAsync(120);
     expect(onCommit).toHaveBeenCalledWith("about");
   });
 
-  it("commits the selected item on Enter", async () => {
+  it("moves the highlight without committing, then commits on Enter", async () => {
     vi.useFakeTimers();
     const onCommit = vi.fn();
-    const { getByRole } = render(Menu, { onCommit });
-    await fireEvent.click(getByRole("button", { name: "EXPERIENCE" }));
+    render(Menu, { onCommit });
+    await fireEvent.keyDown(document, { key: "ArrowDown" });
     await vi.advanceTimersByTimeAsync(120);
+    expect(onCommit).not.toHaveBeenCalled();
     await fireEvent.keyDown(document, { key: "Enter" });
-    expect(onCommit).toHaveBeenCalledWith("experience");
+    expect(onCommit).toHaveBeenCalledWith("about");
   });
 
   it("does not reverse the highlight on Escape while a window is open", async () => {
@@ -62,12 +61,8 @@ describe("Menu commit semantics", () => {
     }
   });
 
-  it("cancels a pending mobile commit when unmounted", async () => {
+  it("cancels a pending commit when unmounted", async () => {
     vi.useFakeTimers();
-    vi.mocked(globalThis.matchMedia).mockReturnValue({
-      ...globalThis.matchMedia(""),
-      matches: true,
-    });
     const onCommit = vi.fn();
     const { getByRole, unmount } = render(Menu, { onCommit });
     await fireEvent.click(getByRole("button", { name: "ABOUT ME" }));

@@ -133,7 +133,6 @@
       bind:this={dialogEl}
     >
       <header>
-        <span class="title">{displayedLabel}</span>
         <button
           class="close"
           type="button"
@@ -176,15 +175,7 @@
   header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .title {
-    color: var(--ui-accent);
-    font: inherit;
-    font-size: 16px;
-    letter-spacing: 1px;
+    justify-content: flex-end;
   }
 
   .body {
@@ -266,10 +257,6 @@
       background: transparent;
       font-size: 11px;
       line-height: 36px;
-    }
-
-    .title {
-      font-size: 11px;
     }
 
     .body {

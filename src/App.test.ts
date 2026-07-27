@@ -22,14 +22,11 @@ describe("App", () => {
     const { getByRole, queryByRole, container } = render(App);
     const about = getByRole("button", { name: "ABOUT ME" });
     await fireEvent.click(about);
-    await vi.advanceTimersByTimeAsync(120);
-    await fireEvent.click(about);
-    await vi.advanceTimersByTimeAsync(210);
+    await vi.advanceTimersByTimeAsync(330);
 
     const projects = getByRole("button", { name: "PROJECTS" });
     await fireEvent.click(projects);
     await vi.advanceTimersByTimeAsync(120);
-    await fireEvent.click(projects);
 
     expect(
       getByRole("dialog", { name: "ABOUT ME window" }),
@@ -54,9 +51,7 @@ describe("App", () => {
     const { container, getByRole, queryByRole } = render(App);
     const about = getByRole("button", { name: "ABOUT ME" });
     await fireEvent.click(about);
-    await vi.advanceTimersByTimeAsync(120);
-    await fireEvent.click(about);
-    await vi.advanceTimersByTimeAsync(210);
+    await vi.advanceTimersByTimeAsync(330);
 
     expect(
       container.querySelector('[data-widget-id="player"]'),
@@ -72,7 +67,7 @@ describe("App", () => {
     expect(queryByRole("dialog")).not.toBeInTheDocument();
 
     await fireEvent.click(about);
-    await vi.advanceTimersByTimeAsync(210);
+    await vi.advanceTimersByTimeAsync(330);
     expect(
       getByRole("dialog", { name: "ABOUT ME window" }),
     ).toBeInTheDocument();
