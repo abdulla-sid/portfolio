@@ -103,16 +103,27 @@
   .split {
     --gutter: calc(10px * var(--hd-scale, 2));
     --paddle-width: 24px;
-    --paddle-height: 106px;
+    --paddle-height: 116px;
+    --edge-trim-left: var(--content-trim-left, 0px);
+    --edge-trim-right: var(--content-trim-right, 0px);
+    --map-share: 0.62;
+    --map-scale: 0.9;
     display: grid;
     grid-template-areas:
       "prev text map  next"
-      ".    rail rail .";
+      "rail rail rail rail";
     grid-template-columns:
-      var(--paddle-width)
-      minmax(0, 38%)
+      calc(var(--paddle-width) + var(--edge-trim-left))
       minmax(0, 1fr)
-      var(--paddle-width);
+      calc(
+        (
+            var(--map-share) *
+              (100% - var(--edge-trim-left) - var(--edge-trim-right)) - 2 *
+              var(--paddle-width) - 3 * var(--gutter)
+          ) *
+          var(--map-scale)
+      )
+      calc(var(--paddle-width) + var(--edge-trim-right));
     grid-template-rows: minmax(0, 1fr) auto;
     gap: var(--gutter);
     height: 100%;
@@ -135,10 +146,12 @@
 
   .prev {
     grid-area: prev;
+    justify-self: start;
   }
 
   .next {
     grid-area: next;
+    justify-self: end;
   }
 
   .paddle:disabled {
@@ -202,7 +215,7 @@
     margin-top: 18px;
     padding-right: 8px;
     overflow-y: auto;
-    font-size: 8px;
+    font-size: 9px;
     line-height: 1.8;
     scrollbar-color: var(--ui-accent) transparent;
     scrollbar-width: thin;
@@ -226,6 +239,9 @@
 
   .map-slot {
     grid-area: map;
+    align-self: center;
+    aspect-ratio: 1;
+    margin-top: var(--gutter);
     min-width: 0;
     min-height: 0;
   }
@@ -237,6 +253,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
+    margin: 0 var(--paddle-width) 6px;
     list-style: none;
   }
 
@@ -244,17 +261,17 @@
     content: "";
     position: absolute;
     top: 50%;
-    right: 9px;
-    left: 9px;
-    height: 2px;
+    right: 14px;
+    left: 14px;
+    height: 3px;
     background: var(--ui-accent-deep);
     transform: translateY(-50%);
   }
 
   .node {
     position: relative;
-    width: 10px;
-    height: 10px;
+    width: 20px;
+    height: 20px;
     border: 2px solid var(--ui-accent-deep);
     background: var(--surface-page);
   }
@@ -289,6 +306,16 @@
         var(--paddle-width);
       grid-template-rows: minmax(160px, 3fr) minmax(140px, 2fr) auto;
     }
+
+    .map-slot {
+      align-self: stretch;
+      aspect-ratio: auto;
+      margin-top: 0;
+    }
+
+    .rail {
+      margin: 0 0 6px;
+    }
   }
 
   @media (max-width: 900px) {
@@ -315,7 +342,7 @@
     }
   }
 
-  @media (max-width: 900px) and (max-height: 740px) {
+  @media (max-width: 1100px) and (max-height: 740px) {
     .split {
       --gutter: 10px;
       --paddle-height: 80px;

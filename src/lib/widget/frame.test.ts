@@ -1,45 +1,58 @@
 import { describe, expect, it } from "vitest";
-import {
-  HAND_DRAWN_FRAMES,
-  createHorizontalSlices,
-  createMobileFrameSlices,
-} from "./frame";
+import { framePerimeterCells, sliceTracks } from "./frame";
+
+const BAND = { x: 66, y: 147, w: 651, h: 363 };
 
 describe("widget frame geometry", () => {
-  it("assigns contiguous source positions to horizontal slices", () => {
-    const slices = createHorizontalSlices(66, [
+  it("pins fixed tracks to the art scale and lets flexible tracks absorb the slack", () => {
+    const tracks = sliceTracks([
       { width: 65 },
       { width: 128, flexible: true },
       { width: 50 },
     ]);
 
-    expect(slices).toEqual([
-      { width: 65, sourceX: 66 },
-      { width: 128, flexible: true, sourceX: 131 },
-      { width: 50, sourceX: 259 },
-    ]);
+    expect(tracks).toBe(
+      "calc(65px * var(--hd-scale)) minmax(0, 128fr) calc(50px * var(--hd-scale))",
+    );
   });
 
-  it("creates the existing nine mobile frame cells", () => {
-    const slices = createMobileFrameSlices(HAND_DRAWN_FRAMES.xl.band);
-    expect(slices).toHaveLength(9);
-    expect(slices[0]).toEqual({
+  it("walks source offsets across both axes", () => {
+    const cells = framePerimeterCells(
+      BAND,
+      [{ width: 26 }, { width: 599, flexible: true }, { width: 26 }],
+      [{ width: 26 }, { width: 311, flexible: true }, { width: 26 }],
+    );
+
+    expect(cells[0]).toEqual({
+      column: 1,
+      row: 1,
       sourceX: 66,
       sourceY: 147,
-      width: 40,
-      height: 40,
+      width: 26,
+      height: 26,
     });
-    expect(slices[4]).toEqual({
-      sourceX: 106,
-      sourceY: 187,
-      width: 571,
-      height: 283,
+    expect(cells.at(-1)).toEqual({
+      column: 3,
+      row: 3,
+      sourceX: 691,
+      sourceY: 484,
+      width: 26,
+      height: 26,
     });
-    expect(slices[8]).toEqual({
-      sourceX: 677,
-      sourceY: 470,
-      width: 40,
-      height: 40,
-    });
+  });
+
+  it("emits only the perimeter, leaving the uniform interior to a background fill", () => {
+    const columns = Array.from({ length: 13 }, () => ({ width: 1 }));
+    const rows = Array.from({ length: 11 }, () => ({ width: 1 }));
+
+    const cells = framePerimeterCells(BAND, columns, rows);
+
+    expect(cells).toHaveLength(13 * 2 + (11 - 2) * 2);
+    expect(
+      cells.some(
+        (cell) =>
+          cell.row > 1 && cell.row < 11 && cell.column > 1 && cell.column < 13,
+      ),
+    ).toBe(false);
   });
 });

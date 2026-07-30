@@ -1,46 +1,36 @@
 <script lang="ts">
   import {
     HAND_DRAWN_FRAMES,
-    createHorizontalSlices,
-    createMobileFrameSlices,
-    createSliceColumns,
+    framePerimeterCells,
+    sliceTracks,
     type FrameArtId,
-    type HorizontalSliceSegment,
+    type SliceSegment,
   } from "./frame";
 
   interface Props {
     art: FrameArtId;
-    segments: HorizontalSliceSegment[];
+    columns: SliceSegment[];
+    rows: SliceSegment[];
   }
 
-  let { art, segments }: Props = $props();
+  let { art, columns, rows }: Props = $props();
   const drawn = $derived(HAND_DRAWN_FRAMES[art]);
-  const horizontalSlices = $derived(
-    createHorizontalSlices(drawn.band.x, segments),
-  );
-  const sliceColumns = $derived(createSliceColumns(horizontalSlices));
-  const mobileSlices = $derived(createMobileFrameSlices(drawn.band));
+  const cells = $derived(framePerimeterCells(drawn.band, columns, rows));
+  const trackColumns = $derived(sliceTracks(columns));
+  const trackRows = $derived(sliceTracks(rows));
 </script>
 
 <div
   class="frame-slices"
-  style:grid-template-columns={sliceColumns}
+  style:grid-template-columns={trackColumns}
+  style:grid-template-rows={trackRows}
   aria-hidden="true"
 >
-  {#each horizontalSlices as segment}
+  {#each cells as cell}
     <svg
-      viewBox={`${segment.sourceX} ${drawn.band.y} ${segment.width} ${drawn.band.h}`}
-      preserveAspectRatio="none"
-    >
-      <image href={drawn.src} width={drawn.source.w} height={drawn.source.h} />
-    </svg>
-  {/each}
-</div>
-
-<div class="mobile-frame" aria-hidden="true">
-  {#each mobileSlices as segment}
-    <svg
-      viewBox={`${segment.sourceX} ${segment.sourceY} ${segment.width} ${segment.height}`}
+      style:grid-column={cell.column}
+      style:grid-row={cell.row}
+      viewBox={`${cell.sourceX} ${cell.sourceY} ${cell.width} ${cell.height}`}
       preserveAspectRatio="none"
     >
       <image href={drawn.src} width={drawn.source.w} height={drawn.source.h} />
@@ -53,38 +43,15 @@
     position: absolute;
     inset: 0;
     display: grid;
+    background: var(--surface-page);
     pointer-events: none;
   }
 
-  .frame-slices svg,
-  .mobile-frame svg {
+  .frame-slices svg {
     display: block;
     width: 100%;
     height: 100%;
     overflow: hidden;
     image-rendering: pixelated;
-  }
-
-  .mobile-frame {
-    display: none;
-  }
-
-  @media (max-width: 900px) {
-    :global(.widget[data-widget-id="menu-window"]) .frame-slices {
-      display: none;
-    }
-
-    :global(.widget[data-widget-id="menu-window"]) .mobile-frame {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      grid-template-columns:
-        var(--mobile-panel-corner-size) minmax(0, 1fr)
-        var(--mobile-panel-corner-size);
-      grid-template-rows:
-        var(--mobile-panel-corner-size) minmax(0, 1fr)
-        var(--mobile-panel-corner-size);
-      pointer-events: none;
-    }
   }
 </style>

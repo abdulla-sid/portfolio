@@ -9,7 +9,7 @@
     HAND_DRAWN_FRAMES,
     cssSize,
     type FrameArtId,
-    type HorizontalSliceSegment,
+    type SliceSegment,
   } from "./widget/frame";
 
   interface Props {
@@ -27,7 +27,9 @@
     width?: number | string;
     height?: number | string;
 
-    sliceX?: HorizontalSliceSegment[];
+    sliceX?: SliceSegment[];
+
+    sliceY?: SliceSegment[];
 
     collapseY?: number;
 
@@ -55,6 +57,7 @@
       ? HAND_DRAWN_FRAMES[art].band.h * scale
       : undefined,
     sliceX,
+    sliceY,
     collapseY = 1,
     whiten = 0,
     resizable = false,
@@ -73,8 +76,8 @@
   );
   let el = $state<HTMLElement>()!;
   const canResize = $derived(resizable && frame === "double");
-  const hasHorizontalSlice = $derived(
-    frame === "hand-drawn" && sliceX !== undefined && sliceX.length > 0,
+  const hasSlices = $derived(
+    frame === "hand-drawn" && sliceX !== undefined && sliceY !== undefined,
   );
   $effect(() => {
     const node = el;
@@ -106,7 +109,7 @@
   bind:this={el}
   data-widget-id={id}
   class="widget {frame === 'hand-drawn' ? 'hand-drawn' : 'double'}"
-  class:sliced-x={hasHorizontalSlice}
+  class:sliced={hasSlices}
   class:mobile-hidden={mobileHidden}
   class:desktop-hidden={desktopHidden}
   style="{anchor}; {sizeStyle}"
@@ -121,8 +124,8 @@
   style:z-index={windows.zIndexOf(id)}
   use:draggable
 >
-  {#if hasHorizontalSlice}
-    <HandDrawnFrame {art} segments={sliceX ?? []} />
+  {#if hasSlices}
+    <HandDrawnFrame {art} columns={sliceX ?? []} rows={sliceY ?? []} />
   {/if}
   {#if frame === "double"}
     <div class="tbar">
@@ -158,7 +161,7 @@
     background-repeat: no-repeat;
   }
 
-  .hand-drawn.sliced-x {
+  .hand-drawn.sliced {
     background-image: none;
   }
 
@@ -237,6 +240,7 @@
     }
 
     .widget[data-widget-id="menu-window"] {
+      --hd-scale: 1;
       top: var(--mobile-panel-top) !important;
       right: var(--mobile-panel-inline) !important;
       bottom: var(--mobile-panel-bottom) !important;
@@ -251,7 +255,7 @@
       box-shadow: none;
     }
 
-    .widget[data-widget-id="menu-window"].sliced-x {
+    .widget[data-widget-id="menu-window"].sliced {
       background-image: none;
     }
 

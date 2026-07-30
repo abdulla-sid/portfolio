@@ -3,7 +3,7 @@ import handDrawnXl from "../../assets/widget2-xl-ds.png";
 
 export type FrameArtId = "small" | "xl";
 
-export interface HorizontalSliceSegment {
+export interface SliceSegment {
   width: number;
   flexible?: boolean;
 }
@@ -15,7 +15,14 @@ export interface FrameBand {
   h: number;
 }
 
-export const MOBILE_FRAME_CORNER_PX = 40;
+export interface FrameCell {
+  column: number;
+  row: number;
+  sourceX: number;
+  sourceY: number;
+  width: number;
+  height: number;
+}
 
 export const HAND_DRAWN_FRAMES = {
   small: {
@@ -30,21 +37,7 @@ export const HAND_DRAWN_FRAMES = {
   },
 } as const;
 
-export function createHorizontalSlices(
-  bandX: number,
-  segments: readonly HorizontalSliceSegment[],
-) {
-  let sourceX = bandX;
-  return segments.map((segment) => {
-    const slice = { ...segment, sourceX };
-    sourceX += segment.width;
-    return slice;
-  });
-}
-
-export function createSliceColumns(
-  segments: readonly HorizontalSliceSegment[],
-): string {
+export function sliceTracks(segments: readonly SliceSegment[]): string {
   return segments
     .map((segment) =>
       segment.flexible
@@ -54,28 +47,43 @@ export function createSliceColumns(
     .join(" ");
 }
 
-export function createMobileFrameSlices(
-  band: FrameBand,
-  corner = MOBILE_FRAME_CORNER_PX,
-) {
-  const columns = [
-    { source: band.x, size: corner },
-    { source: band.x + corner, size: band.w - corner * 2 },
-    { source: band.x + band.w - corner, size: corner },
-  ];
-  const rows = [
-    { source: band.y, size: corner },
-    { source: band.y + corner, size: band.h - corner * 2 },
-    { source: band.y + band.h - corner, size: corner },
-  ];
+function sliceOffsets(start: number, segments: readonly SliceSegment[]) {
+  let source = start;
+  return segments.map((segment) => {
+    const offset = { source, size: segment.width };
+    source += segment.width;
+    return offset;
+  });
+}
 
-  return rows.flatMap((row) =>
-    columns.map((column) => ({
-      sourceX: column.source,
-      sourceY: row.source,
-      width: column.size,
-      height: row.size,
-    })),
+export function framePerimeterCells(
+  band: FrameBand,
+  columns: readonly SliceSegment[],
+  rows: readonly SliceSegment[],
+): FrameCell[] {
+  const columnOffsets = sliceOffsets(band.x, columns);
+  const rowOffsets = sliceOffsets(band.y, rows);
+  const lastColumn = columns.length - 1;
+  const lastRow = rows.length - 1;
+
+  return rowOffsets.flatMap((row, rowIndex) =>
+    columnOffsets
+      .map((column, columnIndex) => ({ column, columnIndex }))
+      .filter(
+        ({ columnIndex }) =>
+          rowIndex === 0 ||
+          rowIndex === lastRow ||
+          columnIndex === 0 ||
+          columnIndex === lastColumn,
+      )
+      .map(({ column, columnIndex }) => ({
+        column: columnIndex + 1,
+        row: rowIndex + 1,
+        sourceX: column.source,
+        sourceY: row.source,
+        width: column.size,
+        height: row.size,
+      })),
   );
 }
 

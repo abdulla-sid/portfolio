@@ -8,6 +8,7 @@
   import ContactPanel from "./panels/ContactPanel.svelte";
   import ProjectsPanel from "./panels/ProjectsPanel.svelte";
   import { menuLabel, type MenuId } from "../app/menu";
+  import { notchedTab } from "../lib/widget/notch";
 
   interface Props {
     id: MenuId;
@@ -26,6 +27,10 @@
     f2: { collapseY: 0.3, whiten: 0.75 },
     line: { collapseY: 0.011, whiten: 1 },
   } as const;
+
+  const CLOSE_TAB = notchedTab(15, 54);
+  const CLOSE_TAB_SCALE = 1.8;
+  const CLOSE_TAB_MOBILE = notchedTab(24, 94);
 
   const reduceMotion = prefersReducedMotion();
   let win = $state<WindowState>({ phase: "closed", frame: null });
@@ -120,42 +125,73 @@
     { width: 127, flexible: true },
     { width: 67 },
   ]}
+  sliceY={[
+    { width: 26 },
+    { width: 43, flexible: true },
+    { width: 9 },
+    { width: 38, flexible: true },
+    { width: 17 },
+    { width: 16, flexible: true },
+    { width: 11 },
+    { width: 67, flexible: true },
+    { width: 20 },
+    { width: 90, flexible: true },
+    { width: 26 },
+  ]}
   collapseY={view.collapseY}
   whiten={view.whiten}
   anchor="top: 125px; left: 500px"
 >
   {#if isOpen}
     <div
-      class="content"
+      class="dialog"
       role="dialog"
       aria-label="{displayedLabel} window"
       tabindex="-1"
       bind:this={dialogEl}
     >
-      <header>
-        <button
-          class="close"
-          type="button"
-          aria-label="Close"
-          onclick={requestClose}>X</button
+      <button
+        class="close"
+        type="button"
+        aria-label="Close"
+        style:--close-width="{CLOSE_TAB.width * CLOSE_TAB_SCALE}px"
+        style:--close-height="{CLOSE_TAB.height * CLOSE_TAB_SCALE}px"
+        style:--close-mobile-width="{CLOSE_TAB_MOBILE.width}px"
+        style:--close-mobile-height="{CLOSE_TAB_MOBILE.height}px"
+        onclick={requestClose}
+      >
+        <svg class="tab desktop" viewBox={CLOSE_TAB.viewBox} aria-hidden="true">
+          <path class="edge" d={CLOSE_TAB.edge}></path>
+          <path class="face" d={CLOSE_TAB.face}></path>
+        </svg>
+        <svg
+          class="tab mobile"
+          viewBox={CLOSE_TAB_MOBILE.viewBox}
+          aria-hidden="true"
         >
-      </header>
+          <path class="edge" d={CLOSE_TAB_MOBILE.edge}></path>
+          <path class="face" d={CLOSE_TAB_MOBILE.face}></path>
+        </svg>
+        <span>CLOSE</span>
+      </button>
 
-      {#if displayedId === "about"}
-        <div class="body">
-          <AboutPanel />
-        </div>
-      {:else if displayedId === "projects"}
-        <ProjectsPanel />
-      {:else if displayedId === "experience"}
-        <div class="body panel-body">
-          <ExperiencePanel />
-        </div>
-      {:else if displayedId === "contact"}
-        <div class="body">
-          <ContactPanel />
-        </div>
-      {/if}
+      <div class="content">
+        {#if displayedId === "about"}
+          <div class="body">
+            <AboutPanel />
+          </div>
+        {:else if displayedId === "projects"}
+          <ProjectsPanel />
+        {:else if displayedId === "experience"}
+          <div class="body panel-body">
+            <ExperiencePanel />
+          </div>
+        {:else if displayedId === "contact"}
+          <div class="body">
+            <ContactPanel />
+          </div>
+        {/if}
+      </div>
     </div>
   {/if}
   {#if showLineBar}
@@ -164,22 +200,26 @@
 </Widget>
 
 <style>
+  .dialog {
+    --content-trim-left: 15px;
+    --content-trim-right: 25px;
+    --content-inset-right: calc(
+      75px * var(--hd-scale) - var(--content-trim-right)
+    );
+    position: absolute;
+    inset: 0;
+  }
+
   .content {
     position: absolute;
-    inset: calc(48px * var(--hd-scale)) calc(75px * var(--hd-scale))
-      calc(36px * var(--hd-scale)) calc(70px * var(--hd-scale));
+    inset: calc(48px * var(--hd-scale)) var(--content-inset-right)
+      calc(36px * var(--hd-scale))
+      calc(70px * var(--hd-scale) - var(--content-trim-left));
     display: flex;
     flex-direction: column;
   }
 
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
   .body {
-    margin-top: calc(20px * var(--hd-scale));
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -218,20 +258,56 @@
   }
 
   .close {
-    width: 18px;
-    height: 18px;
+    position: absolute;
+    top: calc(15px * var(--hd-scale));
+    right: var(--content-inset-right);
+    display: grid;
+    width: var(--close-width);
+    height: var(--close-height);
+    padding: 0;
     border: 0;
-    background: var(--ui-ink);
+    background: none;
     color: var(--ui-accent);
     font: inherit;
-    font-size: 10px;
-    line-height: 18px;
+    font-size: 9px;
+    letter-spacing: 1px;
     cursor: pointer;
   }
 
+  .tab {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    shape-rendering: crispEdges;
+  }
+
+  .tab.mobile {
+    display: none;
+  }
+
+  .edge {
+    fill: var(--ui-accent);
+  }
+
+  .face {
+    fill: var(--ui-ink);
+  }
+
+  .close span {
+    position: relative;
+    align-self: center;
+    justify-self: end;
+    padding-right: 13.5px;
+  }
+
   .close:focus-visible {
-    outline: 2px solid var(--ui-highlight);
-    outline-offset: 1px;
+    outline: none;
+    color: var(--ui-ink);
+  }
+
+  .close:focus-visible .face {
+    fill: var(--ui-accent);
   }
 
   .line-bar {
@@ -245,22 +321,33 @@
       inset: 44px 34px 158px;
     }
 
-    header {
-      padding-right: 0;
+    .close {
+      right: 34px;
+      width: var(--close-mobile-width);
+      height: var(--close-mobile-height);
+      font-size: 9px;
     }
 
-    .close {
-      flex: 0 0 36px;
-      width: 36px;
-      height: 36px;
-      border: 0;
-      background: transparent;
-      font-size: 11px;
-      line-height: 36px;
+    .close::before {
+      content: "";
+      position: absolute;
+      inset: -15px -12px -14px -12px;
+    }
+
+    .close span {
+      padding-right: 13px;
+    }
+
+    .tab.desktop {
+      display: none;
+    }
+
+    .tab.mobile {
+      display: block;
     }
 
     .body {
-      margin-top: 30px;
+      margin-top: 12px;
       font-size: 9px;
       line-height: 1.65;
       scrollbar-width: none;
