@@ -14,7 +14,7 @@
   <p>
     Off the clock, I'm just a chill, performative guy who enjoys painting,
     music, and going to overpriced coffee shops. Check out my current playlist
-    in this nifty iPod, and drop a few suggestions for what you want me to try.
+    in this nifty iPod, and drop a few suggestions for what you want me to try in the contact menu.
   </p>
 </div>
 <div class="deck-slot"><DeckPlayer /></div>
