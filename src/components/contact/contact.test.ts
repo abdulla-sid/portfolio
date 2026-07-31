@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CONTACT_ENDPOINT, send, validate } from "./contact";
+import {
+  CONTACT_EMAIL,
+  CONTACT_ENDPOINT,
+  emailFallback,
+  send,
+  validate,
+} from "./contact";
 
 describe("validate", () => {
   it("rejects each invalid field and accepts clean input", () => {
@@ -18,6 +24,20 @@ describe("validate", () => {
     expect(
       validate({ name: "Ada", email: "ada@lovelace.dev", message: "hello" }),
     ).toBeNull();
+  });
+});
+
+describe("emailFallback", () => {
+  it("builds an encoded email link with the typed contact details", () => {
+    const href = emailFallback({
+      name: " Ada ",
+      email: " ada@example.com ",
+      message: "Hello & goodbye",
+    });
+
+    expect(href).toContain(`mailto:${CONTACT_EMAIL}?`);
+    expect(href).toContain("subject=Portfolio%20contact%20from%20Ada");
+    expect(href).toContain("Hello%20%26%20goodbye");
   });
 });
 

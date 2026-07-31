@@ -6,6 +6,7 @@ export interface ContactFields {
 }
 
 export const CONTACT_ENDPOINT = "/api/contact";
+export const CONTACT_EMAIL = "contact@tinydesktop.me";
 
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,6 +19,12 @@ export function validate(fields: ContactFields): string | null {
   if (!fields.message.trim()) return "MESSAGE REQUIRED";
   if (fields.message.trim().length > 5000) return "MESSAGE TOO LONG";
   return null;
+}
+
+export function emailFallback(fields: ContactFields): string {
+  const subject = `Portfolio contact from ${fields.name.trim()}`;
+  const body = `Name: ${fields.name.trim()}\nEmail: ${fields.email.trim()}\n\n${fields.message.trim()}`;
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 export async function send(

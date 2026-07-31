@@ -26,9 +26,11 @@ vi.mock("./turnstile", () => ({
 }));
 
 import { send } from "./contact";
+import { turnstileSiteKey } from "./turnstile";
 import ContactForm from "./ContactForm.svelte";
 
 const sendMock = vi.mocked(send);
+const turnstileSiteKeyMock = vi.mocked(turnstileSiteKey);
 
 async function fill(
   getByLabelText: (name: string) => Element,
@@ -42,6 +44,7 @@ async function fill(
 describe("ContactForm", () => {
   beforeEach(() => {
     sendMock.mockReset().mockResolvedValue();
+    turnstileSiteKeyMock.mockReset().mockReturnValue("test-site-key");
     turnstileApi.render.mockClear();
     turnstileApi.remove.mockClear();
     turnstileApi.reset.mockClear();
@@ -51,6 +54,20 @@ describe("ContactForm", () => {
     const { getByRole, getByText } = render(ContactForm);
     await fireEvent.click(getByRole("button", { name: "SEND" }));
     expect(getByText("NAME REQUIRED")).toBeInTheDocument();
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to email when the security check is unavailable", async () => {
+    turnstileSiteKeyMock.mockReturnValue("");
+    const { getByRole } = render(ContactForm);
+
+    await waitFor(() =>
+      expect(getByRole("link", { name: "SEND" })).toHaveAttribute(
+        "href",
+        expect.stringContaining("mailto:contact@tinydesktop.me"),
+      ),
+    );
+
     expect(sendMock).not.toHaveBeenCalled();
   });
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
-  import { send, validate } from "./contact";
+  import { emailFallback, send, validate } from "./contact";
   import {
     loadTurnstile,
     turnstileSiteKey,
@@ -22,6 +22,9 @@
   let widgetId: string | number | undefined;
   let request: AbortController | undefined;
   let mounted = true;
+  const fallbackHref = $derived(
+    emailFallback({ name, email, message, website }),
+  );
 
   async function renderChallenge() {
     const sitekey = turnstileSiteKey();
@@ -172,9 +175,13 @@
       {#if error ?? challengeError}
         <p class="error" role="alert">{error ?? challengeError}</p>
       {/if}
-      <button type="submit" disabled={phase === "sending"}>
-        {phase === "sending" ? "SENDING…" : "SEND"}
-      </button>
+      {#if challengeError === "SECURITY CHECK UNAVAILABLE"}
+        <a class="send" href={fallbackHref}>SEND</a>
+      {:else}
+        <button type="submit" disabled={phase === "sending"}>
+          {phase === "sending" ? "SENDING…" : "SEND"}
+        </button>
+      {/if}
     </div>
   </form>
 {/if}
@@ -251,7 +258,8 @@
     color: var(--ui-highlight);
   }
 
-  button {
+  button,
+  .send {
     border: 2px solid var(--ui-accent);
     background: var(--ui-ink);
     padding: 8px 20px;
@@ -260,6 +268,7 @@
     font-size: 12px;
     letter-spacing: 1px;
     cursor: pointer;
+    text-decoration: none;
   }
 
   button:disabled {
@@ -268,7 +277,8 @@
     cursor: default;
   }
 
-  button:focus-visible {
+  button:focus-visible,
+  .send:focus-visible {
     outline: 2px solid var(--ui-highlight);
     outline-offset: 1px;
   }
@@ -313,13 +323,15 @@
       gap: 12px;
     }
 
-    button {
+    button,
+    .send {
       min-height: 44px;
       padding: 8px 18px;
       font-size: 9px;
     }
 
-    .foot button {
+    .foot button,
+    .foot .send {
       width: 100%;
       background: var(--ui-accent);
       color: var(--ui-ink);
