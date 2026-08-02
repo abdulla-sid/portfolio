@@ -40,7 +40,12 @@
 
   @media (max-width: 900px) {
     footer {
-      display: none;
+      left: var(--mobile-panel-inline);
+      right: var(--mobile-panel-inline);
+      bottom: var(--safe-bottom);
+      height: var(--mobile-footer-band);
+      align-items: center;
+      font-size: 8px;
     }
   }
 </style>

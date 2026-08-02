@@ -121,8 +121,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
   --mobile-panel-inline: 14px;
+  --mobile-footer-band: 47px;
   --mobile-panel-top: calc(135px + var(--safe-top));
-  --mobile-panel-bottom: calc(47px + var(--safe-bottom));
+  --mobile-panel-bottom: calc(var(--mobile-footer-band) + var(--safe-bottom));
   --mobile-panel-corner-size: 40px;
   --mobile-panel-content-gap: 8px;
 }
