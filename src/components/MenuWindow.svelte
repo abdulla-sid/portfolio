@@ -175,7 +175,7 @@
         <span>CLOSE</span>
       </button>
 
-      <div class="content">
+      <div class="content" class:player-docked={displayedId === "about"}>
         {#if displayedId === "about"}
           <div class="body">
             <AboutPanel />
@@ -318,7 +318,11 @@
 
   @media (max-width: 900px) {
     .content {
-      inset: 44px 34px 158px;
+      inset: 44px 34px 36px;
+    }
+
+    .content.player-docked {
+      bottom: 158px;
     }
 
     .close {

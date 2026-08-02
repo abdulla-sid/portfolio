@@ -388,6 +388,17 @@
     .stack li {
       font-size: 6px;
     }
+
+    .node {
+      width: 12px;
+      height: 12px;
+    }
+
+    .rail::before {
+      right: 8px;
+      left: 8px;
+      height: 2px;
+    }
   }
 
   @media (max-width: 1100px) and (max-height: 740px) {
