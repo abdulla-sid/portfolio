@@ -244,10 +244,16 @@
     transition: --scan-progress var(--scan-duration) linear;
   }
 
-  .dave-widget.tapped,
-  .dave-widget:not(.touched):hover {
+  .dave-widget.tapped {
     --scan-duration: 800ms;
     --scan-progress: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .dave-widget:not(.touched):hover {
+      --scan-duration: 800ms;
+      --scan-progress: 1;
+    }
   }
 
   .dave-widget img {
@@ -375,9 +381,14 @@
     transition: filter 220ms ease-out;
   }
 
-  .dave-widget.tapped .beam,
-  .dave-widget:not(.touched):hover .beam {
+  .dave-widget.tapped .beam {
     filter: brightness(1.35);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .dave-widget:not(.touched):hover .beam {
+      filter: brightness(1.35);
+    }
   }
 
   .beam-outer,

@@ -385,9 +385,14 @@
     transition: opacity 120ms linear;
   }
 
-  .attribution:hover,
   .attribution:focus-within {
     opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .attribution:hover {
+      opacity: 1;
+    }
   }
 
   .attribution a {

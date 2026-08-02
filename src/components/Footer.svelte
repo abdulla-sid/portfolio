@@ -26,8 +26,10 @@
     color: var(--ui-accent);
     text-decoration: none;
   }
-  a:hover {
-    color: var(--ui-highlight);
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      color: var(--ui-highlight);
+    }
   }
   span {
     justify-self: center;
