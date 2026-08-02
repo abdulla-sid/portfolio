@@ -104,16 +104,19 @@
   --grid-line-edge-width: 1px;
   --grid-line-core-width: 1px;
 
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
   --mobile-panel-inline: 14px;
-  --mobile-panel-top: 135px;
-  --mobile-panel-bottom: 47px;
+  --mobile-panel-top: calc(135px + var(--safe-top));
+  --mobile-panel-bottom: calc(47px + var(--safe-bottom));
   --mobile-panel-corner-size: 40px;
   --mobile-panel-content-gap: 8px;
 }
 
 body {
   background: var(--surface-page);
-  min-height: 100vh;
+  min-height: 100svh;
   overflow: hidden;
   font-family: "Press Start 2P", monospace;
 }

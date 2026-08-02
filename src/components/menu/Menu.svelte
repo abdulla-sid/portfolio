@@ -238,7 +238,7 @@
   @media (max-width: 900px) {
     .mobile-toggle {
       position: fixed;
-      top: 20px;
+      top: calc(20px + var(--safe-top));
       right: 20px;
       z-index: 2001;
       display: flex;
@@ -262,7 +262,7 @@
 
     nav {
       position: fixed;
-      top: 84px;
+      top: calc(84px + var(--safe-top));
       right: 0;
       left: 0;
       z-index: 2000;

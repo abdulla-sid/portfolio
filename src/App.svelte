@@ -8,6 +8,7 @@
   import MenuWindow from "./components/MenuWindow.svelte";
   import PlayerWidget from "./components/player/PlayerWidget.svelte";
   import Background from "./components/Background.svelte";
+  import RotateNotice from "./components/RotateNotice.svelte";
   import { providePlayer } from "./components/player/context.svelte";
   import type { MenuId } from "./app/menu";
 
@@ -51,10 +52,18 @@
   <Footer />
 </div>
 
+<RotateNotice />
+
 <style>
   .scene {
     position: fixed;
     inset: 0;
     z-index: 1;
+  }
+
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+    .scene {
+      display: none;
+    }
   }
 </style>

@@ -22,7 +22,7 @@
 
   @media (max-width: 900px) {
     #title {
-      top: 32px;
+      top: calc(32px + var(--safe-top));
       left: 20px;
       font-size: 9px;
       white-space: nowrap;
