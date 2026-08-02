@@ -286,7 +286,7 @@
         var(--mobile-panel-inline) + var(--mobile-panel-corner-size)
       ) !important;
       width: auto !important;
-      height: 102px;
+      height: var(--mobile-player-height);
       transform: none !important;
       border-top: 2px solid var(--ui-accent-deep);
       box-shadow: none;

@@ -108,7 +108,6 @@
     --paddle-height: 116px;
     --edge-trim-left: var(--content-trim-left, 0px);
     --edge-trim-right: var(--content-trim-right, 0px);
-    --media-share: 1fr;
     display: grid;
     grid-template-areas:
       "prev text next"
@@ -130,7 +129,7 @@
     grid-template-columns:
       calc(var(--paddle-width) + var(--edge-trim-left))
       minmax(0, 1fr)
-      minmax(0, var(--media-share))
+      minmax(0, 1fr)
       calc(var(--paddle-width) + var(--edge-trim-right));
   }
 
@@ -353,7 +352,6 @@
 
     .media-slot img {
       height: 100%;
-      object-fit: cover;
     }
   }
 

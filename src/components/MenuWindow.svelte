@@ -181,7 +181,9 @@
             <AboutPanel />
           </div>
         {:else if displayedId === "projects"}
-          <ProjectsPanel />
+          <div class="body panel-body">
+            <ProjectsPanel />
+          </div>
         {:else if displayedId === "experience"}
           <div class="body panel-body">
             <ExperiencePanel />
@@ -322,7 +324,10 @@
     }
 
     .content.player-docked {
-      bottom: 158px;
+      bottom: calc(
+        var(--mobile-panel-corner-size) + var(--mobile-player-height) + 2 *
+          var(--mobile-panel-content-gap)
+      );
     }
 
     .close {

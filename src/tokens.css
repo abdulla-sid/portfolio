@@ -126,6 +126,7 @@
   --mobile-panel-bottom: calc(var(--mobile-footer-band) + var(--safe-bottom));
   --mobile-panel-corner-size: 40px;
   --mobile-panel-content-gap: 8px;
+  --mobile-player-height: 102px;
 }
 
 body {
