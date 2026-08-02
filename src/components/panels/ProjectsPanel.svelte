@@ -31,7 +31,7 @@
   }
 </script>
 
-<div class="split">
+<div class="split" class:has-media={activeProject.image}>
   <button
     bind:this={prevPaddle}
     class="paddle prev"
@@ -69,6 +69,12 @@
     </ul>
   </section>
 
+  {#if activeProject.image}
+    <div class="media-slot">
+      <img src={activeProject.image} alt={activeProject.imageAlt} />
+    </div>
+  {/if}
+
   <p class="announcement" aria-live="polite">
     {activeProject.title}, {activeProject.context}, {activeProject.dates}
   </p>
@@ -102,6 +108,7 @@
     --paddle-height: 116px;
     --edge-trim-left: var(--content-trim-left, 0px);
     --edge-trim-right: var(--content-trim-right, 0px);
+    --media-share: 1fr;
     display: grid;
     grid-template-areas:
       "prev text next"
@@ -114,6 +121,33 @@
     gap: var(--gutter);
     height: 100%;
     min-height: 0;
+  }
+
+  .split.has-media {
+    grid-template-areas:
+      "prev text media next"
+      "rail rail rail rail";
+    grid-template-columns:
+      calc(var(--paddle-width) + var(--edge-trim-left))
+      minmax(0, 1fr)
+      minmax(0, var(--media-share))
+      calc(var(--paddle-width) + var(--edge-trim-right));
+  }
+
+  .media-slot {
+    display: flex;
+    grid-area: media;
+    align-self: center;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .media-slot img {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    border: 2px solid var(--ui-accent);
+    object-fit: cover;
   }
 
   .paddle {
@@ -300,6 +334,27 @@
     .split {
       --gutter: 12px;
     }
+
+    .split.has-media {
+      grid-template-areas:
+        "prev text next"
+        "prev media next"
+        "rail rail rail";
+      grid-template-columns:
+        var(--paddle-width)
+        minmax(0, 1fr)
+        var(--paddle-width);
+      grid-template-rows: minmax(140px, 3fr) minmax(110px, 2fr) auto;
+    }
+
+    .media-slot {
+      align-self: stretch;
+    }
+
+    .media-slot img {
+      height: 100%;
+      object-fit: cover;
+    }
   }
 
   @media (max-width: 900px) {
@@ -339,6 +394,10 @@
     .split {
       --gutter: 10px;
       --paddle-height: 80px;
+    }
+
+    .split.has-media {
+      grid-template-rows: minmax(90px, 3fr) minmax(80px, 2fr) auto;
     }
   }
 </style>

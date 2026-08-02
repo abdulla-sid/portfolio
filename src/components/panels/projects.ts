@@ -1,3 +1,5 @@
+import prefetchTeam from "../../assets/prefetch-v-team.jpeg";
+
 export interface Project {
   id: string;
   title: string;
@@ -6,12 +8,14 @@ export interface Project {
   impact: string;
   narrative: string[];
   stack: string[];
+  image?: string;
+  imageAlt?: string;
 }
 
 export const PROJECTS: Project[] = [
   {
-    id: "healthcare-platform",
-    title: "Healthcare Operations Platform",
+    id: "first-class-healthcare",
+    title: "First Class Healthcare",
     context: "Carbonteq",
     dates: "June 2025 – Present",
     impact: "Used daily by 1,000+ medical staff across 8 counties.",
@@ -36,5 +40,8 @@ export const PROJECTS: Project[] = [
       "Custom benchmarks showed significant performance improvement over the same core without prefetching.",
     ],
     stack: ["Verilog", "SystemVerilog", "Questa", "Python", "FPGA"],
+    image: prefetchTeam,
+    imageAlt:
+      "The Prefetch V team at their SEECS Open House booth, with the project poster, an FPGA development board, and a memory-latency slide on screen.",
   },
 ];
