@@ -402,7 +402,12 @@
     border-left: 2px solid var(--dave-beam-edge);
     border-right: 2px solid var(--dave-beam-edge);
     border-bottom: 2px solid var(--dave-beam-edge);
-    mask-image: linear-gradient(to top, black 0%, black 65%, transparent 100%);
+    mask-image: linear-gradient(
+      to top,
+      var(--mask-opaque) 0%,
+      var(--mask-opaque) 65%,
+      transparent 100%
+    );
   }
 
   .beam-core {
@@ -413,7 +418,12 @@
       var(--dave-beam-core) 66%,
       transparent 100%
     );
-    mask-image: linear-gradient(to top, black 0%, black 50%, transparent 90%);
+    mask-image: linear-gradient(
+      to top,
+      var(--mask-opaque) 0%,
+      var(--mask-opaque) 50%,
+      transparent 90%
+    );
   }
 
   @media (max-width: 900px) {

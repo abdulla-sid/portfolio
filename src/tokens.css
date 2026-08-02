@@ -69,7 +69,8 @@
   --text-primary: var(--color-accent);
   --text-muted: var(--color-neutral-60);
   --border-primary: var(--color-accent);
-  --mask-opaque: var(--color-neutral-0);
+
+  --mask-opaque: #000;
 
   --grid-line-edge: var(--color-grid-a09);
   --grid-line-core: var(--color-grid-a25);
