@@ -302,7 +302,7 @@
     textarea {
       min-height: 44px;
       padding: 8px;
-      font-size: 9px;
+      font-size: 16px;
     }
 
     textarea {
