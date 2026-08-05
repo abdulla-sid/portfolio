@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     HAND_DRAWN_FRAMES,
+    frameCellBackground,
     framePerimeterCells,
     sliceTracks,
     type FrameArtId,
@@ -24,17 +25,18 @@
   class="frame-slices"
   style:grid-template-columns={trackColumns}
   style:grid-template-rows={trackRows}
+  style:--slice-image={`url("${drawn.src}")`}
   aria-hidden="true"
 >
   {#each cells as cell}
-    <svg
+    {@const background = frameCellBackground(cell, drawn.source)}
+    <div
+      class="slice"
       style:grid-column={cell.column}
       style:grid-row={cell.row}
-      viewBox={`${cell.sourceX} ${cell.sourceY} ${cell.width} ${cell.height}`}
-      preserveAspectRatio="none"
-    >
-      <image href={drawn.src} width={drawn.source.w} height={drawn.source.h} />
-    </svg>
+      style:background-size={background.size}
+      style:background-position={background.position}
+    ></div>
   {/each}
 </div>
 
@@ -47,11 +49,11 @@
     pointer-events: none;
   }
 
-  .frame-slices svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+  .slice {
+    min-width: 0;
+    min-height: 0;
+    background-image: var(--slice-image);
+    background-repeat: no-repeat;
     image-rendering: pixelated;
   }
 </style>

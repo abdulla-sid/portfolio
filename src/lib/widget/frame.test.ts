@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { framePerimeterCells, sliceTracks } from "./frame";
+import { frameCellBackground, framePerimeterCells, sliceTracks } from "./frame";
 
 const BAND = { x: 66, y: 147, w: 651, h: 363 };
 
@@ -39,6 +39,27 @@ describe("widget frame geometry", () => {
       width: 26,
       height: 26,
     });
+  });
+
+  it("crops a slice with percentages that ignore the rendered cell size", () => {
+    const background = frameCellBackground(
+      { column: 1, row: 1, sourceX: 66, sourceY: 147, width: 65, height: 26 },
+      { w: 810, h: 810 },
+    );
+
+    expect(background).toEqual({
+      size: "1246.1538% 3115.3846%",
+      position: "8.8591% 18.75%",
+    });
+  });
+
+  it("anchors a slice spanning a whole axis instead of dividing by zero", () => {
+    const background = frameCellBackground(
+      { column: 1, row: 1, sourceX: 0, sourceY: 147, width: 810, height: 26 },
+      { w: 810, h: 810 },
+    );
+
+    expect(background.position).toBe("0% 18.75%");
   });
 
   it("emits only the perimeter, leaving the uniform interior to a background fill", () => {
