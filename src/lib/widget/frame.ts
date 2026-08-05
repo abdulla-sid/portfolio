@@ -87,6 +87,34 @@ export function framePerimeterCells(
   );
 }
 
+export interface FrameCellBackground {
+  size: string;
+  position: string;
+}
+
+function round(value: number): number {
+  return Math.round(value * 10000) / 10000;
+}
+
+function coverPercent(source: number, region: number): number {
+  return round((source / region) * 100);
+}
+
+function anchorPercent(start: number, source: number, region: number): number {
+  const slack = source - region;
+  return slack === 0 ? 0 : round((start / slack) * 100);
+}
+
+export function frameCellBackground(
+  cell: FrameCell,
+  source: { w: number; h: number },
+): FrameCellBackground {
+  return {
+    size: `${coverPercent(source.w, cell.width)}% ${coverPercent(source.h, cell.height)}%`,
+    position: `${anchorPercent(cell.sourceX, source.w, cell.width)}% ${anchorPercent(cell.sourceY, source.h, cell.height)}%`,
+  };
+}
+
 export function cssSize(value: number | string): string {
   return typeof value === "number" ? `${value}px` : value;
 }
