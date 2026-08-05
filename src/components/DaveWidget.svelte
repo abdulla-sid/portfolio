@@ -204,10 +204,21 @@
   </div>
   <div class="scan-plane scan-far"><div class="scan-ring"></div></div>
   <div class="layer pose-side">
-    {@render figure("side")}
+    <div class="clip below-plane">
+      <div class="clip outside-disc">
+        {@render figure("side")}
+      </div>
+    </div>
   </div>
   <div class="layer pose-front">
-    {@render figure("front")}
+    <div class="clip above-plane">
+      {@render figure("front")}
+    </div>
+    <div class="clip inside-disc">
+      <div class="clip below-plane">
+        {@render figure("front")}
+      </div>
+    </div>
   </div>
   <div class="scan-plane scan-near"><div class="scan-ring"></div></div>
   <img
@@ -283,31 +294,57 @@
   }
 
   .dave-widget {
+    --scan-plane-stop: max(0px, var(--scan-edge));
     --scan-above-plane: linear-gradient(
       to bottom,
-      var(--mask-opaque) var(--scan-edge),
-      transparent var(--scan-edge)
+      var(--mask-opaque) var(--scan-plane-stop),
+      transparent var(--scan-plane-stop)
     );
     --scan-disc: radial-gradient(
       var(--ring-rx) var(--ring-ry) at var(--ring-cx) var(--scan-edge),
       var(--mask-opaque) 99%,
       transparent 100%
     );
+    --scan-below-plane: linear-gradient(
+      to bottom,
+      transparent var(--scan-plane-stop),
+      var(--mask-opaque) var(--scan-plane-stop)
+    );
+    --scan-outside-disc: radial-gradient(
+      var(--ring-rx) var(--ring-ry) at var(--ring-cx) var(--scan-edge),
+      transparent 99%,
+      var(--mask-opaque) 100%
+    );
   }
 
   .pose-side {
     z-index: 3;
-    mask-image:
-      linear-gradient(var(--mask-opaque), var(--mask-opaque)),
-      var(--scan-above-plane), var(--scan-disc);
-    mask-composite: subtract, add, add;
-    mask-repeat: no-repeat;
   }
 
   .pose-front {
     z-index: 4;
-    mask-image: var(--scan-disc), var(--scan-above-plane);
+  }
+
+  .clip {
+    position: absolute;
+    inset: 0;
     mask-repeat: no-repeat;
+  }
+
+  .above-plane {
+    mask-image: var(--scan-above-plane);
+  }
+
+  .below-plane {
+    mask-image: var(--scan-below-plane);
+  }
+
+  .inside-disc {
+    mask-image: var(--scan-disc);
+  }
+
+  .outside-disc {
+    mask-image: var(--scan-outside-disc);
   }
 
   .figure {
