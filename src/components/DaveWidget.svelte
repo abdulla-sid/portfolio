@@ -176,7 +176,7 @@
   style:--dais-cx={daisCenterX}
   style:--dais-cy={daisCenterY}
   style:--scan-from={scanFrom}
-  style:--scan-span={scanSpan}
+  style:--scan-to={scanTo}
   style:--ring-cx={unit(ringCx)}
   style:--ring-rx={unit(RING_RX)}
   style:--ring-ry={unit(RING_RY)}
@@ -229,30 +229,37 @@
     initial-value: 0;
   }
 
+  @property --scan-edge {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 0px;
+  }
+
   .dave-widget {
     --dave-scale: 2px;
     --scan-duration: 620ms;
     --scan-progress: 0;
-    --scan-edge: calc(
-      (var(--scan-from) + var(--scan-progress) * var(--scan-span)) *
-        var(--dave-scale)
-    );
+    --scan-edge: calc(var(--scan-from) * var(--dave-scale));
     position: absolute;
     right: var(--page-margin);
     top: 50%;
     transform: translateY(-50%);
-    transition: --scan-progress var(--scan-duration) linear;
+    transition:
+      --scan-progress var(--scan-duration) linear,
+      --scan-edge var(--scan-duration) linear;
   }
 
   .dave-widget.tapped {
     --scan-duration: 800ms;
     --scan-progress: 1;
+    --scan-edge: calc(var(--scan-to) * var(--dave-scale));
   }
 
   @media (hover: hover) and (pointer: fine) {
     .dave-widget:not(.touched):hover {
       --scan-duration: 800ms;
       --scan-progress: 1;
+      --scan-edge: calc(var(--scan-to) * var(--dave-scale));
     }
   }
 
