@@ -2,6 +2,7 @@
   import dais from "../assets/dave-dais.png";
   import daveFront from "../assets/dave-front.png";
   import daveSide from "../assets/dave-side.png";
+  import { ANNOTATIONS, rerollPair } from "./daveAnnotations";
 
   const DAVE_W = 180;
   const DAVE_H = 240;
@@ -107,10 +108,44 @@
 
   const ringCx = daisLeft + RING_CX;
 
+  const REVEAL_LEAD = 0.32;
+
+  const frontOffset = poseOffset(POSES.front);
+
+  const callouts = ANNOTATIONS.map((annotation) => {
+    const x = annotation.anchorX + frontOffset.x;
+    const y = annotation.anchorY + frontOffset.y;
+    const midY = annotation.boxY + frontOffset.y;
+    const drop = annotation.boxY - annotation.anchorY;
+    const cornerX = x - Math.abs(drop);
+    const reachedAt = (y - scanFrom) / scanSpan;
+    const from = Math.max(0.03, reachedAt - REVEAL_LEAD);
+
+    return {
+      ...annotation,
+      x,
+      y,
+      midY,
+      boxRight: unit(DAVE_W - annotation.boxEdge),
+      diagonalLength: Math.SQRT2 * Math.abs(drop),
+      diagonalAngle: drop > 0 ? 135 : -135,
+      runWidth: cornerX - annotation.boxEdge,
+      from,
+      span: Math.max(0.001, reachedAt - from),
+    };
+  });
+
+  let pick = $state(0);
+
   let root: HTMLDivElement;
   let touched = $state(false);
   let tapped = $state(false);
   let tapStart: { x: number; y: number } | null = null;
+
+  function handlePointerEnter(event: PointerEvent) {
+    if (event.pointerType === "touch" || tapped) return;
+    pick = rerollPair(pick);
+  }
 
   function handlePointerDown(event: PointerEvent) {
     if (event.pointerType !== "touch") {
@@ -131,7 +166,10 @@
     );
     tapStart = null;
 
-    if (distance <= 10) tapped = !tapped;
+    if (distance > 10) return;
+
+    tapped = !tapped;
+    if (tapped) pick = rerollPair(pick);
   }
 
   function handleDocumentPointerDown(event: PointerEvent) {
@@ -169,6 +207,7 @@
   class:tapped
   class:touched
   aria-hidden="true"
+  onpointerenter={handlePointerEnter}
   onpointerdown={handlePointerDown}
   onpointerup={handlePointerUp}
   style:width={unit(DAVE_W)}
@@ -231,6 +270,38 @@
     style:height={unit(DAIS_H)}
     style:--dais-front-inset={unit(EMITTER_PLANE_Y)}
   />
+  <div class="annotations">
+    {#each callouts as callout (callout.id)}
+      <div
+        class="callout"
+        style:--ann-from={callout.from.toFixed(4)}
+        style:--ann-span={callout.span.toFixed(4)}
+      >
+        <div
+          class="ann-box"
+          style:top={unit(callout.midY)}
+          style:right={callout.boxRight}
+        >
+          {#each callout.lines[pick] as line}
+            <span>{line}</span>
+          {/each}
+        </div>
+        <div
+          class="ann-run"
+          style:left={unit(callout.boxEdge)}
+          style:top={unit(callout.midY)}
+          style:width={unit(callout.runWidth)}
+        ></div>
+        <div
+          class="ann-diagonal"
+          style:left={unit(callout.x)}
+          style:top={unit(callout.y)}
+          style:width={unit(callout.diagonalLength)}
+          style:--ann-angle="{callout.diagonalAngle}deg"
+        ></div>
+      </div>
+    {/each}
+  </div>
 </div>
 
 <style>
@@ -248,6 +319,9 @@
 
   .dave-widget {
     --dave-scale: 2px;
+    --ann-box-width: 176px;
+    --ann-box-height: 97px;
+    --ann-hairline: calc(1 * var(--dave-scale));
     --scan-duration: 620ms;
     --scan-progress: 0;
     --scan-edge: calc(var(--scan-from) * var(--dave-scale));
@@ -479,6 +553,68 @@
       var(--mask-opaque) 50%,
       transparent 90%
     );
+  }
+
+  .annotations {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    display: none;
+    pointer-events: none;
+  }
+
+  .callout {
+    --ann-t: (var(--scan-progress) - var(--ann-from)) / var(--ann-span);
+    position: absolute;
+    inset: 0;
+  }
+
+  .ann-box {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: var(--ann-box-width);
+    height: var(--ann-box-height);
+    padding: 9px 11px;
+    border: 2px solid var(--border-primary);
+    background: var(--surface-page);
+    color: var(--text-primary);
+    font-size: 9px;
+    line-height: 2;
+    letter-spacing: 0.5px;
+    transform: translateY(-50%);
+    opacity: clamp(0, calc((var(--ann-t) - 0.78) / 0.22), 1);
+  }
+
+  .ann-box span {
+    display: block;
+  }
+
+  .ann-diagonal,
+  .ann-run {
+    position: absolute;
+    height: var(--ann-hairline);
+    margin-top: calc(var(--ann-hairline) / -2);
+    background: var(--ui-accent);
+  }
+
+  .ann-diagonal {
+    background: linear-gradient(to right, transparent, var(--ui-accent));
+    transform-origin: left center;
+    transform: rotate(var(--ann-angle))
+      scaleX(clamp(0, calc(var(--ann-t) / 0.5), 1));
+  }
+
+  .ann-run {
+    transform-origin: right center;
+    transform: scaleX(clamp(0, calc((var(--ann-t) - 0.5) / 0.3), 1));
+  }
+
+  @media (min-width: 1360px) {
+    .annotations {
+      display: block;
+    }
   }
 
   @media (max-width: 900px) {
