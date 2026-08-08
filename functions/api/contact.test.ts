@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { onRequestPost } from "./contact";
 
 const env = {
-  CLOUDFLARE_ACCOUNT_ID: "account-id",
-  CLOUDFLARE_EMAIL_API_TOKEN: "api-token",
+  BREVO_API_KEY: "brevo-key",
   CONTACT_RECIPIENT: "private@example.com",
   CONTACT_SENDER: "contact@tinydesktop.me",
   TURNSTILE_SECRET_KEY: "turnstile-secret",
@@ -34,7 +33,9 @@ describe("contact Pages Function", () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(Response.json({ success: true }))
-      .mockResolvedValueOnce(Response.json({ success: true }));
+      .mockResolvedValueOnce(
+        Response.json({ messageId: "brevo-message-id" }, { status: 201 }),
+      );
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await onRequestPost({ request: request(), env });
@@ -50,18 +51,58 @@ describe("contact Pages Function", () => {
       string,
       RequestInit,
     ];
-    expect(emailUrl).toContain("/accounts/account-id/email/sending/send");
-    expect(emailInit.headers).toMatchObject({
-      Authorization: "Bearer api-token",
+    expect(emailUrl).toBe("https://api.brevo.com/v3/smtp/email");
+    expect(emailInit.headers).toMatchObject({ "api-key": "brevo-key" });
+
+    const body = JSON.parse(emailInit.body as string);
+    expect(Object.keys(body).sort()).toEqual([
+      "replyTo",
+      "sender",
+      "subject",
+      "textContent",
+      "to",
+    ]);
+    expect(body.sender).toEqual({
+      email: "contact@tinydesktop.me",
+      name: "Tiny Desktop",
     });
-    expect(JSON.parse(emailInit.body as string)).toMatchObject({
-      to: "private@example.com",
-      from: {
-        address: "contact@tinydesktop.me",
-        name: "Tiny Desktop",
-      },
-      reply_to: { address: "ada@example.com", name: "Ada" },
+    expect(body.to).toEqual([{ email: "private@example.com" }]);
+    expect(body.replyTo).toEqual({ email: "ada@example.com", name: "Ada" });
+  });
+
+  it("treats a delivery response carrying no message id as a failure", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ success: true }))
+      .mockResolvedValueOnce(Response.json({}, { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await onRequestPost({ request: request(), env });
+
+    expect(result.status).toBe(502);
+  });
+
+  it("keeps the reply-to name inside the provider limit", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ success: true }))
+      .mockResolvedValueOnce(
+        Response.json({ messageId: "brevo-message-id" }, { status: 201 }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await onRequestPost({
+      request: request({
+        name: "A".repeat(100),
+        email: "ada@example.com",
+        message: "Hello there",
+        turnstileToken: "challenge-token",
+      }),
+      env,
     });
+
+    const [, emailInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+    expect(JSON.parse(emailInit.body as string).replyTo.name).toHaveLength(70);
   });
 
   it("rejects invalid input before making external requests", async () => {

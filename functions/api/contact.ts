@@ -1,6 +1,5 @@
 interface ContactEnvironment {
-  CLOUDFLARE_ACCOUNT_ID: string;
-  CLOUDFLARE_EMAIL_API_TOKEN: string;
+  BREVO_API_KEY: string;
   CONTACT_RECIPIENT: string;
   CONTACT_SENDER: string;
   TURNSTILE_SECRET_KEY: string;
@@ -22,6 +21,8 @@ interface ContactPayload {
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TURNSTILE_VERIFY =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const BREVO_SEND = "https://api.brevo.com/v3/smtp/email";
+const BREVO_NAME_LIMIT = 70;
 
 function response(status: number, error?: string): Response {
   return Response.json(error ? { ok: false, error } : { ok: true }, {
@@ -74,8 +75,7 @@ function normalizedPayload(value: unknown): ContactPayload | null {
 
 function configured(env: ContactEnvironment): boolean {
   return [
-    env.CLOUDFLARE_ACCOUNT_ID,
-    env.CLOUDFLARE_EMAIL_API_TOKEN,
+    env.BREVO_API_KEY,
     env.CONTACT_RECIPIENT,
     env.CONTACT_SENDER,
     env.TURNSTILE_SECRET_KEY,
@@ -103,32 +103,29 @@ async function deliver(
   payload: ContactPayload,
   env: ContactEnvironment,
 ): Promise<boolean> {
-  const result = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CLOUDFLARE_ACCOUNT_ID)}/email/sending/send`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.CLOUDFLARE_EMAIL_API_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: env.CONTACT_RECIPIENT,
-        from: {
-          address: env.CONTACT_SENDER,
-          name: "Tiny Desktop",
-        },
-        reply_to: {
-          address: payload.email,
-          name: payload.name,
-        },
-        subject: `Portfolio contact from ${payload.name}`,
-        text: `Name: ${payload.name}\nEmail: ${payload.email}\n\n${payload.message}`,
-      }),
+  const result = await fetch(BREVO_SEND, {
+    method: "POST",
+    headers: {
+      "api-key": env.BREVO_API_KEY,
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      sender: {
+        email: env.CONTACT_SENDER,
+        name: "Tiny Desktop",
+      },
+      to: [{ email: env.CONTACT_RECIPIENT }],
+      replyTo: {
+        email: payload.email,
+        name: payload.name.slice(0, BREVO_NAME_LIMIT),
+      },
+      subject: `Portfolio contact from ${payload.name}`,
+      textContent: `Name: ${payload.name}\nEmail: ${payload.email}\n\n${payload.message}`,
+    }),
+  });
   if (!result.ok) return false;
-  const delivery = (await result.json()) as { success?: unknown };
-  return delivery.success === true;
+  const delivery = (await result.json()) as { messageId?: unknown };
+  return typeof delivery.messageId === "string";
 }
 
 export async function onRequestPost({
