@@ -133,22 +133,20 @@
     onsubmit={onSubmit}
     oninput={() => (error = null)}
   >
-    <div class="pair">
-      <label>
-        NAME
-        <input name="name" type="text" bind:value={name} autocomplete="name" />
-      </label>
-      <label>
-        EMAIL
-        <input
-          name="email"
-          type="email"
-          bind:value={email}
-          autocomplete="email"
-        />
-      </label>
-    </div>
-    <label>
+    <label class="name">
+      NAME
+      <input name="name" type="text" bind:value={name} autocomplete="name" />
+    </label>
+    <label class="email">
+      EMAIL
+      <input
+        name="email"
+        type="email"
+        bind:value={email}
+        autocomplete="email"
+      />
+    </label>
+    <label class="message">
       MESSAGE
       <textarea name="message" rows="6" bind:value={message}></textarea>
     </label>
@@ -182,22 +180,62 @@
 <style>
   form,
   .sent {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-    max-width: 640px;
+    --field-gap: 22px;
     color: var(--ui-accent);
     font: inherit;
     font-size: 12px;
   }
 
-  .pair {
-    display: flex;
-    gap: 22px;
+  form {
+    --column-gap: 32px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "name"
+      "email"
+      "message"
+      "challenge"
+      "foot";
+    gap: var(--field-gap) var(--column-gap);
+    min-height: 0;
   }
 
-  .pair label {
+  @container contact-form (min-width: 560px) {
+    form {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "name      message"
+        "email     message"
+        "challenge message"
+        "foot      foot";
+    }
+  }
+
+  .sent {
+    display: flex;
+    flex-direction: column;
+    gap: var(--field-gap);
+    max-width: 640px;
+  }
+
+  .name {
+    grid-area: name;
+  }
+
+  .email {
+    grid-area: email;
+  }
+
+  .message {
+    grid-area: message;
+    min-height: 0;
+  }
+
+  .message textarea {
     flex: 1;
+    min-height: 0;
   }
 
   label {
@@ -231,6 +269,8 @@
   }
 
   .challenge {
+    grid-area: challenge;
+    align-self: start;
     min-height: 0;
   }
 
@@ -241,10 +281,11 @@
   }
 
   .foot {
+    grid-area: foot;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 22px;
+    gap: var(--field-gap);
   }
 
   .error {
@@ -285,13 +326,12 @@
   @media (max-width: 900px) {
     form,
     .sent {
-      gap: 12px;
+      --field-gap: 12px;
       font-size: 9px;
     }
 
-    .pair {
-      flex-direction: column;
-      gap: 22px;
+    form {
+      grid-template-rows: repeat(5, auto);
     }
 
     label {
@@ -307,10 +347,6 @@
 
     textarea {
       min-height: 96px;
-    }
-
-    .foot {
-      gap: 12px;
     }
 
     button {
