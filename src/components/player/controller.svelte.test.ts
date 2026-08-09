@@ -3,7 +3,15 @@ import { createPlayerController } from "./controller.svelte";
 
 class FakeAudio extends EventTarget {
   preload = "";
-  src = "";
+  srcWrites = 0;
+  #src = "";
+  get src() {
+    return this.#src;
+  }
+  set src(value: string) {
+    this.#src = value;
+    this.srcWrites++;
+  }
   paused = true;
   currentTime = 0;
   duration = 30;
@@ -87,6 +95,64 @@ describe("player controller", () => {
     expect(audio.currentTime).toBe(15);
     audio.dispatchEvent(new Event("ended"));
     expect(player.current).toBe(0);
+  });
+
+  it("warms the resolved track and keeps that buffer on the first press", async () => {
+    const audio = new FakeAudio();
+    const player = createPlayerController({
+      playlist,
+      resolve: async (entry) => ({
+        title: entry.query,
+        artist: "artist",
+        preview: `${entry.query}.m4a`,
+      }),
+      createAudio: () => audio as unknown as HTMLAudioElement,
+    });
+    player.initialize();
+    await Promise.resolve();
+
+    expect(audio.preload).toBe("metadata");
+    expect(audio.src).toContain("first.m4a");
+    expect(audio.play).not.toHaveBeenCalled();
+
+    const writesWhileWarm = audio.srcWrites;
+    player.togglePlay();
+    expect(audio.play).toHaveBeenCalled();
+    expect(audio.srcWrites).toBe(writesWhileWarm);
+  });
+
+  it("warms only the track that will actually play when previews resolve out of order", async () => {
+    const resolvers: {
+      resolve: (value: {
+        title: string;
+        artist: string;
+        preview: string;
+      }) => void;
+      reject: () => void;
+    }[] = [];
+    const audio = new FakeAudio();
+    const player = createPlayerController({
+      playlist,
+      resolve: () =>
+        new Promise((resolve, reject) => resolvers.push({ resolve, reject })),
+      createAudio: () => audio as unknown as HTMLAudioElement,
+    });
+    player.initialize();
+
+    resolvers[1].resolve({
+      title: "Second",
+      artist: "B",
+      preview: "second.m4a",
+    });
+    await Promise.resolve();
+    expect(player.current).toBe(1);
+    expect(audio.srcWrites).toBe(0);
+
+    resolvers[0].resolve({ title: "First", artist: "A", preview: "first.m4a" });
+    await Promise.resolve();
+    expect(player.current).toBe(0);
+    expect(audio.src).toContain("first.m4a");
+    expect(audio.srcWrites).toBe(1);
   });
 
   it("stays unheard while the browser buffers so the meter cannot lead the audio", async () => {

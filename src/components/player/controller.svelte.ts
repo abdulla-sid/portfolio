@@ -48,7 +48,7 @@ export function createPlayerController({
     initialized = true;
     const instance = createAudio();
     audio = instance;
-    instance.preload = "none";
+    instance.preload = "metadata";
     instance.addEventListener("play", onPlay);
     instance.addEventListener("pause", onPause);
     instance.addEventListener("playing", onPlaying);
@@ -58,42 +58,61 @@ export function createPlayerController({
     instance.addEventListener("ended", onEnded);
 
     const run = ++generation;
+    const settled = tracks.map(() => false);
+
+    const selectFirstPlayable = () => {
+      if (touched) return;
+      const first = tracks.findIndex((track) => track.preview);
+      if (first < 0) return;
+      current = first;
+      if (settled.every((done, index) => index >= first || done)) warm(first);
+    };
+
     for (const [index, entry] of tracks.entries()) {
       resolve(entry).then(
         (resolved) => {
           if (disposed || run !== generation) return;
+          settled[index] = true;
           tracks[index] = { ...entry, ...resolved };
           failedAll = false;
-          if (!touched) {
-            const first = tracks.findIndex((track) => track.preview);
-            if (first >= 0) current = first;
-          }
+          selectFirstPlayable();
         },
         () => {
           if (disposed || run !== generation) return;
+          settled[index] = true;
           if (!touched && tracks.every((track) => !track.preview)) {
             failedAll = true;
           }
+          selectFirstPlayable();
         },
       );
     }
   }
 
+  function warm(index: number) {
+    const track = tracks[index];
+    if (!audio || touched || !track?.preview) return;
+    if (audio.src !== track.preview) audio.src = track.preview;
+  }
+
   function load(index: number, autoplay: boolean) {
     const track = tracks[index];
     if (!audio || !track?.preview) return;
+    const warmed = !touched && audio.src === track.preview;
     touched = true;
     current = index;
-    audio.src = track.preview;
-    currentTime = 0;
-    duration = 0;
-    audible = false;
+    if (!warmed) {
+      audio.src = track.preview;
+      currentTime = 0;
+      duration = 0;
+      audible = false;
+    }
     if (autoplay) void audio.play().catch(() => {});
   }
 
   function togglePlay() {
     if (!audio || !controller.ready) return;
-    if (!audio.src) load(current, true);
+    if (!touched) load(current, true);
     else if (audio.paused) void audio.play().catch(() => {});
     else audio.pause();
   }
