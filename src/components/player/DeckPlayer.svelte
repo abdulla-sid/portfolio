@@ -35,6 +35,7 @@
 <div
   class="deck"
   class:is-playing={deck.playing}
+  class:is-buffering={deck.buffering}
   data-no-drag
   aria-label="Deck music player"
 >
@@ -240,6 +241,7 @@
     );
   }
   .vrow .lvl {
+    --lvl: var(--ui-accent);
     position: absolute;
     left: 0;
     top: 0;
@@ -247,11 +249,14 @@
     width: 45%;
     background-image: repeating-linear-gradient(
       90deg,
-      var(--ui-accent) 0 9px,
+      var(--lvl) 0 9px,
       transparent 9px 12px
     );
   }
-  .is-playing .vrow .lvl {
+  .is-buffering .vrow .lvl {
+    --lvl: var(--text-muted);
+  }
+  .is-playing:not(.is-buffering) .vrow .lvl {
     animation: vu 1.1s steps(6) infinite;
   }
   @keyframes vu {

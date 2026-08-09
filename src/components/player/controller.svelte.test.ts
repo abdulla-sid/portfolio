@@ -89,6 +89,35 @@ describe("player controller", () => {
     expect(player.current).toBe(0);
   });
 
+  it("stays unheard while the browser buffers so the meter cannot lead the audio", async () => {
+    const audio = new FakeAudio();
+    const player = createPlayerController({
+      playlist,
+      resolve: async (entry) => ({
+        title: entry.query,
+        artist: "artist",
+        preview: `${entry.query}.m4a`,
+      }),
+      createAudio: () => audio as unknown as HTMLAudioElement,
+    });
+    player.initialize();
+    await Promise.resolve();
+
+    player.togglePlay();
+    expect(player.playing).toBe(true);
+    expect(player.buffering).toBe(true);
+
+    audio.dispatchEvent(new Event("playing"));
+    expect(player.buffering).toBe(false);
+
+    audio.dispatchEvent(new Event("waiting"));
+    expect(player.buffering).toBe(true);
+
+    audio.dispatchEvent(new Event("playing"));
+    player.pause();
+    expect(player.buffering).toBe(false);
+  });
+
   it("disposes listeners and ignores late metadata settlement", async () => {
     let settle!: (value: {
       title: string;

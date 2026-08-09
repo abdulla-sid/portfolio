@@ -18,6 +18,7 @@ export function createPlayerController({
   let current = $state(0);
   let touched = false;
   let playing = $state(false);
+  let audible = $state(false);
   let listOpen = $state(false);
   let currentTime = $state(0);
   let duration = $state(0);
@@ -28,7 +29,12 @@ export function createPlayerController({
   let generation = 0;
 
   const onPlay = () => (playing = true);
-  const onPause = () => (playing = false);
+  const onPause = () => {
+    playing = false;
+    audible = false;
+  };
+  const onPlaying = () => (audible = true);
+  const onWaiting = () => (audible = false);
   const onTimeUpdate = () => {
     if (audio) currentTime = audio.currentTime;
   };
@@ -45,6 +51,8 @@ export function createPlayerController({
     instance.preload = "none";
     instance.addEventListener("play", onPlay);
     instance.addEventListener("pause", onPause);
+    instance.addEventListener("playing", onPlaying);
+    instance.addEventListener("waiting", onWaiting);
     instance.addEventListener("timeupdate", onTimeUpdate);
     instance.addEventListener("loadedmetadata", onLoadedMetadata);
     instance.addEventListener("ended", onEnded);
@@ -79,6 +87,7 @@ export function createPlayerController({
     audio.src = track.preview;
     currentTime = 0;
     duration = 0;
+    audible = false;
     if (autoplay) void audio.play().catch(() => {});
   }
 
@@ -119,6 +128,7 @@ export function createPlayerController({
     current = 0;
     touched = false;
     playing = false;
+    audible = false;
     listOpen = false;
     currentTime = 0;
     duration = 0;
@@ -131,6 +141,8 @@ export function createPlayerController({
     if (!audio) return;
     audio.removeEventListener("play", onPlay);
     audio.removeEventListener("pause", onPause);
+    audio.removeEventListener("playing", onPlaying);
+    audio.removeEventListener("waiting", onWaiting);
     audio.removeEventListener("timeupdate", onTimeUpdate);
     audio.removeEventListener("loadedmetadata", onLoadedMetadata);
     audio.removeEventListener("ended", onEnded);
@@ -156,6 +168,9 @@ export function createPlayerController({
     },
     get playing() {
       return playing;
+    },
+    get buffering() {
+      return playing && !audible;
     },
     get listOpen() {
       return listOpen;
