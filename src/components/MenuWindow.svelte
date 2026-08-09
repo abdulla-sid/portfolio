@@ -229,7 +229,7 @@
     scrollbar-width: thin;
     color: var(--ui-accent);
     font: inherit;
-    font-size: 12px;
+    font-size: var(--panel-body, 12px);
     line-height: 2;
   }
 
@@ -271,7 +271,7 @@
     background: none;
     color: var(--ui-accent);
     font: inherit;
-    font-size: 9px;
+    font-size: var(--panel-label, 9px);
     letter-spacing: 1px;
     cursor: pointer;
   }
