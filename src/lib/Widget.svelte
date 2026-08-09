@@ -201,12 +201,21 @@
     display: block;
   }
 
+  @media (min-width: 901px) {
+    .widget[data-widget-id="menu-window"] {
+      --menu-window-scale: 0.9;
+      --menu-window-max-width: calc(1302px * var(--menu-window-scale));
+      --menu-window-width: var(--menu-window-max-width);
+      --menu-window-height: calc(726px * var(--menu-window-scale));
+    }
+  }
+
   @media (min-width: 901px) and (max-width: 1865px) {
     .widget[data-widget-id="menu-window"] {
       --menu-window-width: clamp(
         460px,
         calc(100vw - 500px - var(--page-margin)),
-        1302px
+        var(--menu-window-max-width)
       );
     }
   }
