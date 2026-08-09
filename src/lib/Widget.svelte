@@ -203,10 +203,19 @@
 
   @media (min-width: 901px) {
     .widget[data-widget-id="menu-window"] {
-      --menu-window-scale: 0.9;
+      --menu-window-scale: 0.95;
+      --menu-window-top: 125px;
       --menu-window-max-width: calc(1302px * var(--menu-window-scale));
+      --menu-window-max-height: calc(726px * var(--menu-window-scale));
       --menu-window-width: var(--menu-window-max-width);
-      --menu-window-height: calc(726px * var(--menu-window-scale));
+      --menu-window-height: clamp(
+        380px,
+        calc(
+          100vh - var(--menu-window-top) - var(--page-margin) -
+            var(--desktop-footer-band)
+        ),
+        var(--menu-window-max-height)
+      );
     }
   }
 
@@ -232,8 +241,7 @@
 
   @media (min-width: 901px) and (max-height: 850px) {
     .widget[data-widget-id="menu-window"] {
-      --menu-window-height: calc(100vh - 2 * var(--page-margin));
-      top: var(--page-margin) !important;
+      --menu-window-top: var(--page-margin);
     }
   }
 

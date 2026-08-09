@@ -120,6 +120,8 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
+  --desktop-footer-band: 39px;
+
   --mobile-panel-inline: 14px;
   --mobile-footer-band: 47px;
   --mobile-panel-top: calc(135px + var(--safe-top));

@@ -140,7 +140,7 @@
   ]}
   collapseY={view.collapseY}
   whiten={view.whiten}
-  anchor="top: 125px; right: var(--page-margin)"
+  anchor="top: var(--menu-window-top, 125px); right: var(--page-margin)"
 >
   {#if isOpen}
     <div
