@@ -31,6 +31,9 @@
       color: var(--ui-highlight);
     }
   }
+  a:first-child {
+    justify-self: start;
+  }
   span {
     justify-self: center;
   }
