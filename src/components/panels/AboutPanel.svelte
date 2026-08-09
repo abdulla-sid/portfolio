@@ -23,15 +23,15 @@
 <style>
   .photo {
     float: left;
-    width: 242px;
-    height: 242px;
+    width: var(--panel-photo, 242px);
+    height: var(--panel-photo, 242px);
     margin: 4px 42px 24px 0;
     object-fit: cover;
     border: 2px solid var(--ui-accent);
   }
 
   .text p + p {
-    margin-top: 3.2em;
+    margin-top: var(--panel-para-gap, 3.2em);
   }
 
   .deck-slot {

@@ -20,6 +20,12 @@
     vertical-align: -0.12em;
   }
 
+  @media (min-width: 901px) and (max-height: 850px) {
+    #title {
+      font-size: clamp(14px, 1.4vw, 19px);
+    }
+  }
+
   @media (max-width: 900px) {
     #title {
       top: calc(32px + var(--safe-top));

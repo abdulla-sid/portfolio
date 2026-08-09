@@ -180,10 +180,9 @@
 <style>
   form,
   .sent {
-    --field-gap: 22px;
+    --field-gap: var(--panel-gap, 22px);
     color: var(--ui-accent);
     font: inherit;
-    font-size: 12px;
   }
 
   form {
@@ -252,7 +251,6 @@
     padding: 8px;
     color: var(--ui-accent);
     font: inherit;
-    font-size: 12px;
     line-height: 1.6;
   }
 
@@ -298,7 +296,6 @@
     padding: 8px 20px;
     color: var(--ui-accent);
     font: inherit;
-    font-size: 12px;
     letter-spacing: 1px;
     cursor: pointer;
   }

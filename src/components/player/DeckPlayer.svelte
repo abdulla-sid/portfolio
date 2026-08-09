@@ -160,7 +160,7 @@
 <style>
   .deck {
     width: 100%;
-    padding: 22px;
+    padding: var(--panel-gap, 22px);
     background: var(--player-surface);
     box-shadow:
       0 0 0 4px var(--ui-accent-deep) inset,

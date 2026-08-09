@@ -201,12 +201,35 @@
     display: block;
   }
 
+  @media (min-width: 901px) {
+    .widget[data-widget-id="menu-window"] {
+      --menu-window-scale: 0.95;
+      --menu-window-top: 125px;
+      --panel-body: 12px;
+      --panel-label: 9px;
+      --panel-gap: 22px;
+      --panel-photo: 242px;
+      --panel-para-gap: 3.2em;
+      --menu-window-max-width: calc(1302px * var(--menu-window-scale));
+      --menu-window-max-height: calc(726px * var(--menu-window-scale));
+      --menu-window-width: var(--menu-window-max-width);
+      --menu-window-height: clamp(
+        380px,
+        calc(
+          100vh - var(--menu-window-top) - var(--page-margin) -
+            var(--desktop-footer-band)
+        ),
+        var(--menu-window-max-height)
+      );
+    }
+  }
+
   @media (min-width: 901px) and (max-width: 1865px) {
     .widget[data-widget-id="menu-window"] {
       --menu-window-width: clamp(
         460px,
         calc(100vw - 500px - var(--page-margin)),
-        1302px
+        var(--menu-window-max-width)
       );
     }
   }
@@ -223,8 +246,12 @@
 
   @media (min-width: 901px) and (max-height: 850px) {
     .widget[data-widget-id="menu-window"] {
-      --menu-window-height: calc(100vh - 2 * var(--page-margin));
-      top: var(--page-margin) !important;
+      --menu-window-top: var(--page-margin);
+      --panel-body: 10px;
+      --panel-label: 8px;
+      --panel-gap: 16px;
+      --panel-photo: 168px;
+      --panel-para-gap: 1.8em;
     }
   }
 
