@@ -36,26 +36,18 @@
 
   .deck-slot {
     clear: both;
-    margin-top: 28px;
-    width: 60%;
+    margin-top: var(--deck-slot-gap, 28px);
+    width: var(--deck-slot-width, 60%);
   }
 
   @media (min-width: 901px) and (max-width: 1200px) {
     .photo {
       float: none;
       display: block;
-      width: min(180px, 100%);
+      width: min(var(--panel-photo, 242px), 100%);
       height: auto;
       aspect-ratio: 1;
       margin: 4px auto 24px;
-    }
-
-    .text p + p {
-      margin-top: 2em;
-    }
-
-    .deck-slot {
-      width: 100%;
     }
   }
 
