@@ -37,7 +37,7 @@
   .deck-slot {
     clear: both;
     margin-top: var(--deck-slot-gap, 28px);
-    width: 60%;
+    width: var(--deck-slot-width, 60%);
   }
 
   @media (min-width: 901px) and (max-width: 1200px) {
