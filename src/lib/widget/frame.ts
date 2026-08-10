@@ -37,6 +37,14 @@ export const HAND_DRAWN_FRAMES = {
   },
 } as const;
 
+export function preloadFrameArt(): void {
+  for (const frame of Object.values(HAND_DRAWN_FRAMES)) {
+    if (frame.src.startsWith("data:")) continue;
+    const image = new Image();
+    image.src = frame.src;
+  }
+}
+
 export function sliceTracks(segments: readonly SliceSegment[]): string {
   return segments
     .map((segment) =>
