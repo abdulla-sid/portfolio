@@ -167,7 +167,7 @@
       0 0 0 8px var(--player-edge) inset;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--deck-inner-gap, 16px);
   }
 
   .screen {

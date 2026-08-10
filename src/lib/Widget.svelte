@@ -210,6 +210,9 @@
       --panel-gap: 22px;
       --panel-photo: 242px;
       --panel-para-gap: 3.2em;
+      --panel-leading: 2;
+      --deck-slot-gap: 28px;
+      --deck-inner-gap: 16px;
       --menu-window-max-width: calc(1302px * var(--menu-window-scale));
       --menu-window-max-height: calc(726px * var(--menu-window-scale));
       --menu-window-width: var(--menu-window-max-width);
@@ -236,6 +239,8 @@
 
   @media (min-width: 901px) and (max-width: 1200px) {
     .widget[data-widget-id="menu-window"] {
+      --panel-photo: 180px;
+      --panel-para-gap: 2em;
       --menu-window-left: clamp(360px, 38vw, 460px);
       --menu-window-width: calc(
         100vw - var(--menu-window-left) - var(--page-margin)
@@ -250,8 +255,11 @@
       --panel-body: 10px;
       --panel-label: 8px;
       --panel-gap: 16px;
-      --panel-photo: 168px;
-      --panel-para-gap: 1.8em;
+      --panel-photo: 104px;
+      --panel-para-gap: 1.4em;
+      --panel-leading: 1.7;
+      --deck-slot-gap: 12px;
+      --deck-inner-gap: 10px;
     }
   }
 

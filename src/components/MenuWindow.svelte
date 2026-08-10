@@ -230,7 +230,7 @@
     color: var(--ui-accent);
     font: inherit;
     font-size: var(--panel-body, 12px);
-    line-height: 2;
+    line-height: var(--panel-leading, 2);
   }
 
   .body::-webkit-scrollbar {
