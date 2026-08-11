@@ -1,32 +1,43 @@
 <script lang="ts">
   import { steppedCorner } from "../../lib/widget/notch";
 
-  const PAPER = steppedCorner(120, 90, 15);
+  const PAPER_WIDTH = 120;
+  const PAPER_MIN_HEIGHT = 90;
+  const PAPER_CORNER = 15;
   const PAPER_SCALE = 2;
 
   const LINES = [
-    { label: "BUILDING", value: "this site" },
-    { label: "READING", value: "the pragmatic programmer" },
+    { label: "READING", value: "the hitchhiker's guide to the galaxy" },
     { label: "COFFEE", value: "03 today" },
+    { label: "PAINTING", value: "Badly" },
   ];
+
+  let contentHeight = $state(0);
+
+  const paperHeight = $derived(
+    Math.max(PAPER_MIN_HEIGHT, Math.ceil(contentHeight / PAPER_SCALE)),
+  );
+  const paper = $derived(steppedCorner(PAPER_WIDTH, paperHeight, PAPER_CORNER));
 </script>
 
 <aside
   class="note"
-  style:--note-width="{PAPER.width * PAPER_SCALE}px"
-  style:--note-height="{PAPER.height * PAPER_SCALE}px"
+  style:--note-width="{paper.width * PAPER_SCALE}px"
+  style:--note-height="{paper.height * PAPER_SCALE}px"
 >
-  <svg class="paper" viewBox={PAPER.viewBox} aria-hidden="true">
-    <path d={PAPER.path}></path>
+  <svg class="paper" viewBox={paper.viewBox} aria-hidden="true">
+    <path d={paper.path}></path>
   </svg>
   <span class="tape" aria-hidden="true"></span>
-  <p class="heading">NOTE TO SELF</p>
-  <dl>
-    {#each LINES as line (line.label)}
-      <dt>{line.label}</dt>
-      <dd>{line.value}</dd>
-    {/each}
-  </dl>
+  <div class="content" bind:clientHeight={contentHeight}>
+    <p class="heading">NOTE TO SELF</p>
+    <dl>
+      {#each LINES as line (line.label)}
+        <dt>{line.label}</dt>
+        <dd>{line.value}</dd>
+      {/each}
+    </dl>
+  </div>
 </aside>
 
 <style>
@@ -36,8 +47,12 @@
     width: var(--note-width);
     height: var(--note-height);
     margin-left: -20px;
-    padding: 24px 20px 20px;
     color: var(--note-ink);
+  }
+
+  .content {
+    position: relative;
+    padding: 24px 20px 20px;
   }
 
   .paper {
@@ -56,11 +71,6 @@
     width: 56px;
     height: 20px;
     background: var(--note-tape);
-  }
-
-  .heading,
-  dl {
-    position: relative;
   }
 
   .heading {
