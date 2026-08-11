@@ -9,7 +9,7 @@
   const LINES = [
     { label: "READING", value: "the hitchhiker's guide to the galaxy" },
     { label: "COFFEE", value: "03 today" },
-    { label: "PAINTING", value: "Badly" },
+    { label: "PAINTING", value: "badly" },
   ];
 
   let contentHeight = $state(0);
