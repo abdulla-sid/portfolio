@@ -96,6 +96,11 @@
   --player-meter-edge: var(--color-player-meter-edge);
   --player-scanline: var(--color-accent-a06);
 
+  --note-paper: var(--ui-accent);
+  --note-ink: var(--color-neutral-0);
+  --note-label: color-mix(in srgb, var(--color-neutral-0) 55%, transparent);
+  --note-tape: var(--color-grid);
+
   --contact-surface: color-mix(
     in srgb,
     var(--color-accent) 5%,

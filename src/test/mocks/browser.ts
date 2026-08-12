@@ -12,6 +12,12 @@ const canvasContext = {
   fillStyle: "",
 };
 
+class ResizeObserverStub {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+
 function createMediaQueryList(query: string): MediaQueryList {
   return {
     matches: false,
@@ -49,6 +55,11 @@ export function installBrowserMocks() {
   Object.defineProperty(globalThis, "matchMedia", {
     configurable: true,
     value: vi.fn(createMediaQueryList),
+  });
+
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    configurable: true,
+    value: ResizeObserverStub,
   });
 
   if (typeof document !== "undefined" && !document.fonts) {
