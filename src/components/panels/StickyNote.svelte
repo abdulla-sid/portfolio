@@ -67,8 +67,8 @@
   .tape {
     position: absolute;
     top: -10px;
-    left: calc(50% - 28px);
-    width: 56px;
+    left: calc(50% - 14px);
+    width: 28px;
     height: 20px;
     background: var(--note-tape);
   }
