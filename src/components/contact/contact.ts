@@ -7,7 +7,13 @@ export interface ContactFields {
 
 export const CONTACT_ENDPOINT = "/api/contact";
 
+export const MESSAGE_LIMIT = 1000;
+
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function litSegments(length: number, segments: number): number {
+  return Math.min(segments, Math.ceil((length / MESSAGE_LIMIT) * segments));
+}
 
 export function validate(fields: ContactFields): string | null {
   if (!fields.name.trim()) return "NAME REQUIRED";
@@ -16,7 +22,7 @@ export function validate(fields: ContactFields): string | null {
   if (!EMAIL_SHAPE.test(fields.email.trim())) return "EMAIL LOOKS WRONG";
   if (fields.email.trim().length > 254) return "EMAIL TOO LONG";
   if (!fields.message.trim()) return "MESSAGE REQUIRED";
-  if (fields.message.trim().length > 5000) return "MESSAGE TOO LONG";
+  if (fields.message.trim().length > MESSAGE_LIMIT) return "MESSAGE TOO LONG";
   return null;
 }
 

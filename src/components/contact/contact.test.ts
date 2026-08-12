@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CONTACT_ENDPOINT, send, validate } from "./contact";
+import {
+  CONTACT_ENDPOINT,
+  litSegments,
+  MESSAGE_LIMIT,
+  send,
+  validate,
+} from "./contact";
 
 describe("validate", () => {
   it("rejects each invalid field and accepts clean input", () => {
@@ -16,8 +22,32 @@ describe("validate", () => {
       "MESSAGE REQUIRED",
     );
     expect(
+      validate({
+        name: "Ada",
+        email: "a@b.co",
+        message: "x".repeat(MESSAGE_LIMIT + 1),
+      }),
+    ).toBe("MESSAGE TOO LONG");
+    expect(
+      validate({
+        name: "Ada",
+        email: "a@b.co",
+        message: "x".repeat(MESSAGE_LIMIT),
+      }),
+    ).toBeNull();
+    expect(
       validate({ name: "Ada", email: "ada@lovelace.dev", message: "hello" }),
     ).toBeNull();
+  });
+});
+
+describe("litSegments", () => {
+  it("lights a segment as soon as anything is typed and never overruns", () => {
+    expect(litSegments(0, 14)).toBe(0);
+    expect(litSegments(1, 14)).toBe(1);
+    expect(litSegments(MESSAGE_LIMIT / 2, 14)).toBe(7);
+    expect(litSegments(MESSAGE_LIMIT, 14)).toBe(14);
+    expect(litSegments(MESSAGE_LIMIT * 2, 14)).toBe(14);
   });
 });
 

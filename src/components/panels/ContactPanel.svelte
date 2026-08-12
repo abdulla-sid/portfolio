@@ -1,12 +1,16 @@
 <script lang="ts">
-  import ContactForm from "../contact/ContactForm.svelte";
+  const formModule = import("../contact/ContactForm.svelte");
 </script>
 
 <div class="contact">
   <p class="lede">
     Got a project, a job, or a playlist suggestion? Drop me a line.
   </p>
-  <div class="form-slot"><ContactForm /></div>
+  <div class="form-slot">
+    {#await formModule then { default: ContactForm }}
+      <ContactForm />
+    {/await}
+  </div>
 </div>
 
 <style>

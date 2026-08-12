@@ -101,6 +101,16 @@
   --note-label: color-mix(in srgb, var(--color-neutral-0) 55%, transparent);
   --note-tape: var(--color-grid);
 
+  --contact-surface: color-mix(
+    in srgb,
+    var(--color-accent) 5%,
+    var(--color-canvas)
+  );
+
+  --contact-meter: var(--color-player-meter);
+  --contact-meter-hot: var(--color-grid);
+  --contact-alert: var(--color-grid);
+
   --map-background: var(--surface-page);
   --map-road: var(--ui-accent);
 
