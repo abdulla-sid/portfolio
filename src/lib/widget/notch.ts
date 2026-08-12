@@ -6,6 +6,13 @@ export interface NotchedTab {
   face: string;
 }
 
+export interface SteppedCorner {
+  viewBox: string;
+  width: number;
+  height: number;
+  path: string;
+}
+
 const DIAGONAL_STROKE = 2;
 
 export function notchedTab(steps: number, width: number): NotchedTab {
@@ -24,5 +31,25 @@ export function notchedTab(steps: number, width: number): NotchedTab {
     height: steps,
     edge: edge.join(" "),
     face: face.join(" "),
+  };
+}
+
+export function steppedCorner(
+  width: number,
+  height: number,
+  steps: number,
+): SteppedCorner {
+  const path = [`M0 0`, `H${width}`, `V${height - steps}`];
+
+  for (let i = 1; i <= steps; i += 1)
+    path.push(`H${width - i}`, `V${height - steps + i}`);
+
+  path.push("H0", "Z");
+
+  return {
+    viewBox: `0 0 ${width} ${height}`,
+    width,
+    height,
+    path: path.join(" "),
   };
 }
