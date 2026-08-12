@@ -34,6 +34,11 @@
     border: 2px solid var(--ui-accent);
   }
 
+  .text {
+    font-size: 9px;
+    line-height: 1.8;
+  }
+
   .text p + p {
     margin-top: var(--panel-para-gap, 3.2em);
   }
