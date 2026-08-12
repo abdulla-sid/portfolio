@@ -72,7 +72,9 @@
     .text p + p {
       margin-top: 1.6em;
     }
+  }
 
+  @media (max-width: 1200px) {
     .deck-row {
       display: none;
     }
