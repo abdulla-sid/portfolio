@@ -96,6 +96,16 @@
   --player-meter-edge: var(--color-player-meter-edge);
   --player-scanline: var(--color-accent-a06);
 
+  --contact-surface: color-mix(
+    in srgb,
+    var(--color-accent) 5%,
+    var(--color-canvas)
+  );
+
+  --contact-meter: var(--color-player-meter);
+  --contact-meter-hot: var(--color-grid);
+  --contact-alert: var(--color-grid);
+
   --map-background: var(--surface-page);
   --map-road: var(--ui-accent);
 
