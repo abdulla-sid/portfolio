@@ -32,7 +32,11 @@ const sendMock = vi.mocked(send);
 
 async function fill(
   getByLabelText: (name: string) => Element,
-  fields = { NAME: "Ada", EMAIL: "ada@lovelace.dev", MESSAGE: "hello there" },
+  fields = {
+    NAME: "Ada",
+    "REPLY TO": "ada@lovelace.dev",
+    MESSAGE: "hello there",
+  },
 ) {
   for (const [label, value] of Object.entries(fields)) {
     await fireEvent.input(getByLabelText(label), { target: { value } });
@@ -49,7 +53,7 @@ describe("ContactForm", () => {
 
   it("shows the validation error and does not send on bad input", async () => {
     const { getByRole, getByText } = render(ContactForm);
-    await fireEvent.click(getByRole("button", { name: "SEND" }));
+    await fireEvent.click(getByRole("button", { name: "TRANSMIT" }));
     expect(getByText("NAME REQUIRED")).toBeInTheDocument();
     expect(sendMock).not.toHaveBeenCalled();
   });
@@ -64,9 +68,9 @@ describe("ContactForm", () => {
         "true",
       ),
     );
-    await fireEvent.click(getByRole("button", { name: "SEND" }));
+    await fireEvent.click(getByRole("button", { name: "TRANSMIT" }));
 
-    await waitFor(() => expect(getByText("MESSAGE SENT!")).toBeInTheDocument());
+    await waitFor(() => expect(getByText("TRANSMITTED")).toBeInTheDocument());
     expect(sendMock).toHaveBeenCalledWith(
       {
         name: "Ada",
@@ -92,16 +96,16 @@ describe("ContactForm", () => {
         "true",
       ),
     );
-    await fireEvent.click(getByRole("button", { name: "SEND" }));
+    await fireEvent.click(getByRole("button", { name: "TRANSMIT" }));
 
     await waitFor(() =>
-      expect(getByText("SEND FAILED — TRY AGAIN")).toBeInTheDocument(),
+      expect(getByText("TRANSMISSION FAILED — TRY AGAIN")).toBeInTheDocument(),
     );
     expect((getByLabelText("MESSAGE") as HTMLTextAreaElement).value).toBe(
       "hello there",
     );
     expect(
-      (getByRole("button", { name: "SEND" }) as HTMLButtonElement).disabled,
+      (getByRole("button", { name: "TRANSMIT" }) as HTMLButtonElement).disabled,
     ).toBe(false);
   });
 
@@ -141,7 +145,7 @@ describe("ContactForm", () => {
         "true",
       ),
     );
-    await fireEvent.click(getByRole("button", { name: "SEND" }));
+    await fireEvent.click(getByRole("button", { name: "TRANSMIT" }));
     unmount();
     expect(requestSignal?.aborted).toBe(true);
   });

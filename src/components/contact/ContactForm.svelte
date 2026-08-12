@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
-  import { send, validate } from "./contact";
+  import { litSegments, MESSAGE_LIMIT, send, validate } from "./contact";
   import {
     loadTurnstile,
     turnstileSiteKey,
@@ -8,14 +8,27 @@
   } from "./turnstile";
 
   type SubmitPhase = "idle" | "sending" | "sent";
+  type ChallengeState = "waiting" | "unavailable" | "failed";
+
+  const CHALLENGE_TEXT: Record<ChallengeState, string> = {
+    waiting: "OPENING SIGNAL",
+    unavailable: "NO SIGNAL — CANNOT SEND",
+    failed: "SIGNAL LOST — TRY AGAIN",
+  };
+
+  const METER_SEGMENTS = 14;
+  const METER_HOT_FROM = 10;
+  const SEGMENTS = [...Array(METER_SEGMENTS).keys()];
 
   let name = $state("");
   let email = $state("");
+  let track = $state("");
   let message = $state("");
   let website = $state("");
   let phase = $state<SubmitPhase>("idle");
   let error = $state<string | null>(null);
-  let challengeError = $state<string | null>(null);
+  let challenge = $state<ChallengeState>("waiting");
+  let nudged = $state(false);
   let turnstileToken = $state("");
   let challengeEl = $state<HTMLDivElement>();
   let turnstile: TurnstileApi | undefined;
@@ -23,10 +36,25 @@
   let request: AbortController | undefined;
   let mounted = true;
 
+  const lit = $derived(litSegments(message.length, METER_SEGMENTS));
+
+  const signal = $derived(
+    error ??
+      (phase === "sending"
+        ? "TRANSMITTING"
+        : turnstileToken
+          ? "SIGNAL OPEN"
+          : nudged && challenge === "waiting"
+            ? "OPENING SIGNAL — HOLD ON"
+            : CHALLENGE_TEXT[challenge]),
+  );
+
+  const alerting = $derived(Boolean(error) || challenge === "failed" || nudged);
+
   async function renderChallenge() {
     const sitekey = turnstileSiteKey();
     if (!sitekey) {
-      challengeError = "SECURITY CHECK UNAVAILABLE";
+      challenge = "unavailable";
       return;
     }
     try {
@@ -39,25 +67,28 @@
         theme: "dark",
         callback: (token) => {
           turnstileToken = token;
-          challengeError = null;
+          challenge = "waiting";
+          nudged = false;
         },
         "expired-callback": () => {
           turnstileToken = "";
+          challenge = "waiting";
           if (widgetId !== undefined) api.reset(widgetId);
         },
         "error-callback": () => {
           turnstileToken = "";
-          challengeError = "SECURITY CHECK FAILED — TRY AGAIN";
+          challenge = "failed";
           return true;
         },
       });
     } catch {
-      if (mounted) challengeError = "SECURITY CHECK UNAVAILABLE";
+      if (mounted) challenge = "unavailable";
     }
   }
 
   function resetChallenge() {
     turnstileToken = "";
+    challenge = "waiting";
     if (turnstile && widgetId !== undefined) turnstile.reset(widgetId);
   }
 
@@ -65,6 +96,7 @@
     if (turnstile && widgetId !== undefined) turnstile.remove(widgetId);
     widgetId = undefined;
     turnstileToken = "";
+    challenge = "waiting";
   }
 
   async function onSubmit(event: SubmitEvent) {
@@ -77,7 +109,7 @@
       return;
     }
     if (!turnstileToken) {
-      error = challengeError ?? "SECURITY CHECK IN PROGRESS";
+      nudged = true;
       return;
     }
     error = null;
@@ -93,7 +125,7 @@
       if (!mounted || controller.signal.aborted) return;
       phase = "idle";
       resetChallenge();
-      error = "SEND FAILED — TRY AGAIN";
+      error = "TRANSMISSION FAILED — TRY AGAIN";
     } finally {
       if (request === controller) request = undefined;
     }
@@ -102,11 +134,13 @@
   async function reset() {
     name = "";
     email = "";
+    track = "";
     message = "";
     website = "";
     phase = "idle";
     error = null;
-    challengeError = null;
+    challenge = "waiting";
+    nudged = false;
     await tick();
     void renderChallenge();
   }
@@ -122,7 +156,7 @@
 
 {#if phase === "sent"}
   <div class="sent" data-no-drag>
-    <p class="headline">MESSAGE SENT!</p>
+    <p class="headline">TRANSMITTED</p>
     <p>Thanks for reaching out — I'll get back to you soon.</p>
     <button type="button" onclick={reset}>SEND ANOTHER</button>
   </div>
@@ -133,23 +167,48 @@
     onsubmit={onSubmit}
     oninput={() => (error = null)}
   >
-    <label class="name">
-      NAME
-      <input name="name" type="text" bind:value={name} autocomplete="name" />
+    <div class="pair">
+      <label>
+        <span class="key">NAME</span>
+        <input name="name" type="text" bind:value={name} autocomplete="name" />
+      </label>
+      <label>
+        <span class="key">REPLY TO</span>
+        <input
+          name="email"
+          type="email"
+          bind:value={email}
+          autocomplete="email"
+        />
+      </label>
+    </div>
+
+    <label class="track">
+      <span class="key">A TRACK, IF YOU HAVE ONE — OPTIONAL</span>
+      <input name="track" type="text" bind:value={track} autocomplete="off" />
     </label>
-    <label class="email">
-      EMAIL
-      <input
-        name="email"
-        type="email"
-        bind:value={email}
-        autocomplete="email"
-      />
-    </label>
-    <label class="message">
-      MESSAGE
-      <textarea name="message" rows="6" bind:value={message}></textarea>
-    </label>
+
+    <div class="message">
+      <div class="message-head">
+        <label class="key" for="contact-message">MESSAGE</label>
+        <span class="gauge">
+          <span class="meter" aria-hidden="true">
+            {#each SEGMENTS as index (index)}
+              <i class:lit={index < lit} class:hot={index >= METER_HOT_FROM}
+              ></i>
+            {/each}
+          </span>
+          <span class="count">{message.length} / {MESSAGE_LIMIT}</span>
+        </span>
+      </div>
+      <textarea
+        id="contact-message"
+        name="message"
+        rows="6"
+        maxlength={MESSAGE_LIMIT}
+        bind:value={message}></textarea>
+    </div>
+
     <label class="website" aria-hidden="true">
       WEBSITE
       <input
@@ -160,18 +219,21 @@
         tabindex="-1"
       />
     </label>
+
     <div
       class="challenge"
       aria-label="Security verification"
       data-ready={turnstileToken !== ""}
       bind:this={challengeEl}
     ></div>
-    <div class="foot">
-      {#if error ?? challengeError}
-        <p class="error" role="alert">{error ?? challengeError}</p>
-      {/if}
+
+    <div class="rail">
+      <span class="signal" class:alerting>
+        <i class="lamp"></i>
+        <span role={alerting ? "alert" : undefined}>{signal}</span>
+      </span>
       <button type="submit" disabled={phase === "sending"}>
-        {phase === "sending" ? "SENDING…" : "SEND"}
+        {phase === "sending" ? "SENDING…" : "TRANSMIT"}
       </button>
     </div>
   </form>
@@ -186,76 +248,100 @@
   }
 
   form {
-    --column-gap: 32px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "name"
-      "email"
-      "message"
-      "challenge"
-      "foot";
-    gap: var(--field-gap) var(--column-gap);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: var(--field-gap);
+    min-width: 0;
     min-height: 0;
   }
 
-  @container contact-form (min-width: 560px) {
-    form {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-      grid-template-rows: auto auto minmax(0, 1fr) auto;
-      grid-template-areas:
-        "name      message"
-        "email     message"
-        "challenge message"
-        "foot      foot";
+  .pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--field-gap) 34px;
+    min-width: 0;
+  }
+
+  @container contact-form (max-width: 480px) {
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
-  .sent {
-    display: flex;
-    flex-direction: column;
-    gap: var(--field-gap);
-    max-width: 640px;
-  }
-
-  .name {
-    grid-area: name;
-  }
-
-  .email {
-    grid-area: email;
-  }
-
-  .message {
-    grid-area: message;
-    min-height: 0;
-  }
-
-  .message textarea {
-    flex: 1;
-    min-height: 0;
+  @container contact-form (max-width: 300px) {
+    .count {
+      display: none;
+    }
   }
 
   label {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .key {
+    font-size: 8px;
     letter-spacing: 1px;
+    color: var(--text-muted);
   }
 
   input,
   textarea {
-    border: 2px solid var(--ui-accent);
-    background: var(--ui-ink);
-    padding: 8px;
+    border: 0;
+    background: none;
     color: var(--ui-accent);
     font: inherit;
+    font-size: 11px;
     line-height: 1.6;
+    min-width: 0;
+  }
+
+  input {
+    border-bottom: 2px solid var(--ui-accent-deep);
+    padding-bottom: 9px;
+  }
+
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .message-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  .gauge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    white-space: nowrap;
   }
 
   textarea {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 16px;
+    background: var(--contact-surface);
     resize: none;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--ui-highlight);
+    outline-offset: 3px;
+  }
+
+  input:focus-visible {
+    border-bottom-color: var(--ui-accent);
   }
 
   .website {
@@ -266,49 +352,98 @@
     overflow: hidden;
   }
 
-  .challenge {
-    grid-area: challenge;
-    align-self: start;
-    min-height: 0;
+  .challenge:not(:empty) {
+    margin-top: calc(-1 * var(--field-gap) / 2);
   }
 
-  input:focus-visible,
-  textarea:focus-visible {
-    outline: 2px solid var(--ui-highlight);
-    outline-offset: 1px;
-  }
-
-  .foot {
-    grid-area: foot;
+  .rail {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: var(--field-gap);
+    flex-wrap: wrap;
+    gap: 12px;
+    min-width: 0;
   }
 
-  .error {
+  .meter {
+    display: flex;
+    gap: 3px;
+  }
+
+  .meter i {
+    display: block;
+    width: 9px;
+    height: 12px;
+    background: var(--contact-meter);
+  }
+
+  .meter i.lit {
+    background: var(--ui-accent);
+  }
+
+  .meter i.lit.hot {
+    background: var(--contact-meter-hot);
+  }
+
+  .count {
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .signal {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .lamp {
+    width: 10px;
+    height: 10px;
+    background: var(--ui-accent-deep);
+  }
+
+  .signal.alerting {
     color: var(--ui-highlight);
+  }
+
+  .signal.alerting .lamp {
+    background: var(--contact-alert);
   }
 
   button {
     border: 2px solid var(--ui-accent);
-    background: var(--ui-ink);
-    padding: 8px 20px;
-    color: var(--ui-accent);
+    background: var(--ui-accent);
+    padding: 12px 24px;
+    color: var(--ui-ink);
     font: inherit;
+    font-size: 10px;
     letter-spacing: 1px;
     cursor: pointer;
   }
 
   button:disabled {
-    color: var(--ui-accent-deep);
+    background: none;
     border-color: var(--ui-accent-deep);
+    color: var(--ui-accent-deep);
     cursor: default;
   }
 
   button:focus-visible {
     outline: 2px solid var(--ui-highlight);
-    outline-offset: 1px;
+    outline-offset: 3px;
+  }
+
+  .sent {
+    display: flex;
+    flex-direction: column;
+    gap: var(--field-gap);
+    max-width: 640px;
   }
 
   .sent .headline {
@@ -327,8 +462,8 @@
       font-size: 9px;
     }
 
-    form {
-      grid-template-rows: repeat(5, auto);
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
     }
 
     label {
@@ -338,24 +473,26 @@
     input,
     textarea {
       min-height: 44px;
-      padding: 8px;
       font-size: 16px;
     }
 
     textarea {
       min-height: 96px;
+      padding: 10px 12px;
     }
 
-    button {
+    .rail {
+      flex-wrap: wrap;
+    }
+
+    .rail button {
+      width: 100%;
       min-height: 44px;
-      padding: 8px 18px;
       font-size: 9px;
     }
 
-    .foot button {
-      width: 100%;
-      background: var(--ui-accent);
-      color: var(--ui-ink);
+    .signal {
+      margin-left: 0;
     }
   }
 </style>
