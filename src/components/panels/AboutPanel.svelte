@@ -1,6 +1,7 @@
 <script lang="ts">
   import aboutPhoto from "../../assets/about.jpeg";
   import DeckPlayer from "../player/DeckPlayer.svelte";
+  import StickyNote from "./StickyNote.svelte";
 </script>
 
 <img class="photo" src={aboutPhoto} alt="Portrait of me" />
@@ -18,7 +19,10 @@
     in the contact menu!
   </p>
 </div>
-<div class="deck-slot"><DeckPlayer /></div>
+<div class="deck-row">
+  <div class="deck-slot"><DeckPlayer /></div>
+  <StickyNote />
+</div>
 
 <style>
   .photo {
@@ -34,9 +38,16 @@
     margin-top: var(--panel-para-gap, 3.2em);
   }
 
-  .deck-slot {
+  .deck-row {
     clear: both;
     margin-top: var(--deck-slot-gap, 28px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  .deck-slot {
     width: var(--deck-slot-width, 60%);
   }
 
@@ -62,7 +73,7 @@
       margin-top: 1.6em;
     }
 
-    .deck-slot {
+    .deck-row {
       display: none;
     }
   }
