@@ -240,9 +240,6 @@
 
   @media (min-width: 901px) and (max-width: 1200px) {
     .widget[data-widget-id="menu-window"] {
-      --panel-photo: 180px;
-      --panel-para-gap: 2em;
-      --deck-slot-width: 100%;
       --menu-window-left: clamp(360px, 38vw, 460px);
       --menu-window-width: calc(
         100vw - var(--menu-window-left) - var(--page-margin)
@@ -254,6 +251,12 @@
   @media (min-width: 901px) and (max-height: 850px) {
     .widget[data-widget-id="menu-window"] {
       --menu-window-top: var(--page-margin);
+    }
+  }
+
+  @media (min-width: 901px) and (max-height: 850px),
+    (min-width: 901px) and (max-width: 1200px) {
+    .widget[data-widget-id="menu-window"] {
       --panel-body: 10px;
       --panel-label: 8px;
       --panel-gap: 16px;
