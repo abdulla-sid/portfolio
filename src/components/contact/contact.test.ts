@@ -4,6 +4,7 @@ import {
   litSegments,
   MESSAGE_LIMIT,
   send,
+  TRACK_LIMIT,
   validate,
 } from "./contact";
 
@@ -21,6 +22,14 @@ describe("validate", () => {
     expect(validate({ name: "Ada", email: "a@b.co", message: " " })).toBe(
       "MESSAGE REQUIRED",
     );
+    expect(
+      validate({
+        name: "Ada",
+        email: "a@b.co",
+        track: "x".repeat(TRACK_LIMIT + 1),
+        message: "hi",
+      }),
+    ).toBe("TRACK TOO LONG");
     expect(
       validate({
         name: "Ada",
@@ -59,7 +68,12 @@ describe("send", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await send(
-      { name: "Ada", email: "ada@lovelace.dev", message: "hello" },
+      {
+        name: "Ada",
+        email: "ada@lovelace.dev",
+        track: "Charli xcx — Detonate",
+        message: "hello",
+      },
       "turnstile-token",
     );
 
@@ -75,6 +89,7 @@ describe("send", () => {
     expect(body.name).toBe("Ada");
     expect(body.email).toBe("ada@lovelace.dev");
     expect(body.message).toBe("hello");
+    expect(body.track).toBe("Charli xcx — Detonate");
     expect(body.turnstileToken).toBe("turnstile-token");
   });
 

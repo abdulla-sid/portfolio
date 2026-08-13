@@ -35,6 +35,7 @@ async function fill(
   fields = {
     NAME: "Ada",
     "REPLY TO": "ada@lovelace.dev",
+    "A TRACK, IF YOU HAVE ONE — OPTIONAL": "Charli xcx — Detonate",
     MESSAGE: "hello there",
   },
 ) {
@@ -75,6 +76,7 @@ describe("ContactForm", () => {
       {
         name: "Ada",
         email: "ada@lovelace.dev",
+        track: "Charli xcx — Detonate",
         message: "hello there",
         website: "",
       },
