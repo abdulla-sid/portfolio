@@ -1,8 +1,9 @@
 <script lang="ts">
   import Pager from "../../lib/Pager.svelte";
   import { EXPERIENCES } from "./experiences";
+  import { experienceMapModule } from "./lazyMap";
 
-  const mapModule = import("./ExperienceMap.svelte");
+  const mapModule = experienceMapModule();
 
   let activeIndex = $state(0);
 
@@ -36,7 +37,11 @@
     </section>
 
     <div class="map-slot">
-      {#await mapModule then { default: ExperienceMap }}
+      {#await mapModule}
+        <div class="map-pending" aria-hidden="true">
+          <span>LOADING MAP</span>
+        </div>
+      {:then { default: ExperienceMap }}
         <ExperienceMap {focus} {selectedId} />
       {/await}
     </div>
@@ -143,6 +148,18 @@
     margin-top: var(--gutter);
     min-width: 0;
     min-height: 0;
+  }
+
+  .map-pending {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--ui-accent-deep);
+    background: var(--surface-page);
+    color: var(--text-muted);
+    font-size: 8px;
+    letter-spacing: 1px;
   }
 
   @media (max-width: 1100px) {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import { MENU_ITEMS, type MenuId } from "../../app/menu";
+  import { experienceMapModule } from "../map/lazyMap";
   import { prefersReducedMotion } from "../../lib/motion";
   import { createMenuMachine, type MenuState } from "./machine";
 
@@ -31,6 +32,10 @@
 
   function commit(index: number) {
     onCommit?.(MENU_ITEMS[index].id);
+  }
+
+  function warmPanel(id: MenuId) {
+    if (id === "experience") void experienceMapModule();
   }
 
   function focusedIndex(): number {
@@ -128,7 +133,9 @@
         menuState.phase === "selected"}
       aria-pressed={menuState?.index === i && menuState.phase === "selected"}
       type="button"
-      onclick={() => onClick(i)}><span>{item.label}</span></button
+      onclick={() => onClick(i)}
+      onpointerenter={() => warmPanel(item.id)}
+      onfocus={() => warmPanel(item.id)}><span>{item.label}</span></button
     >
   {/each}
 </nav>
