@@ -312,7 +312,13 @@
 
   input {
     border-bottom: 2px solid var(--ui-accent-deep);
-    padding-bottom: 9px;
+    padding: 9px 12px 10px;
+  }
+
+  @container contact-form (max-width: 480px) {
+    input {
+      padding: 5px 10px 7px;
+    }
   }
 
   .message {
