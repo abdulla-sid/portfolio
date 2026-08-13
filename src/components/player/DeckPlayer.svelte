@@ -12,175 +12,227 @@
   const contextualPlayer = playerFromContext();
   const deck = $derived(requirePlayer(controller ?? contextualPlayer));
 
-  const VU_ROWS = 3;
+  const BANDS = [
+    { duration: "1.07s", delay: "-0.41s", idle: 3 },
+    { duration: "1.39s", delay: "-1.13s", idle: 5 },
+    { duration: "1.73s", delay: "-2.07s", idle: 2 },
+  ];
 
-  let rowsEl = $state<HTMLElement>();
-  $effect(() => {
-    if (!deck.listOpen) return;
-    const row = rowsEl?.querySelector<HTMLElement>(".row.on");
-    row?.scrollIntoView?.({ block: "nearest" });
-  });
+  const SEEK_STEP = 0.05;
+  const SEEK_PAGE = 0.2;
 
   let refresh = $state(0);
-  const bumpRefresh = () => refresh++;
-  document.fonts?.ready.then(bumpRefresh);
+  document.fonts?.ready.then(() => refresh++);
 
-  function seekTo(event: MouseEvent) {
+  function seekToPointer(event: MouseEvent) {
+    if (event.detail === 0) return;
     const bar = event.currentTarget as HTMLElement;
     const rect = bar.getBoundingClientRect();
     deck.seek((event.clientX - rect.left) / rect.width);
   }
+
+  const SEEK_KEYS: Record<string, number> = {
+    ArrowLeft: -SEEK_STEP,
+    ArrowRight: SEEK_STEP,
+    ArrowDown: -SEEK_STEP,
+    ArrowUp: SEEK_STEP,
+    PageDown: -SEEK_PAGE,
+    PageUp: SEEK_PAGE,
+  };
+
+  function seekByKey(event: KeyboardEvent) {
+    const target =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? 1
+          : event.key in SEEK_KEYS
+            ? deck.progress + SEEK_KEYS[event.key]
+            : null;
+
+    if (target === null) return;
+    event.preventDefault();
+    deck.seek(Math.min(1, Math.max(0, target)));
+  }
 </script>
 
-<div
-  class="deck"
+<section
+  class="deck player"
   class:is-playing={deck.playing}
   class:is-buffering={deck.buffering}
   data-no-drag
-  aria-label="Deck music player"
+  aria-label="Music player"
 >
-  <div class="screen">
-    {#if deck.listOpen}
-      <div class="listview">
-        <div class="rows" bind:this={rowsEl} role="listbox" aria-label="Tracks">
-          {#each deck.tracks as t, i}
-            <button
-              class="row"
-              class:on={i === deck.current}
-              role="option"
-              aria-selected={i === deck.current}
-              disabled={!t.preview}
-              onclick={() => deck.selectTrack(i, true)}
-            >
-              <span class="n">{String(i + 1).padStart(2, "0")}</span>
-              <span class="rt"
-                >{t.title ? `${t.title} — ${t.artist}` : "loading…"}</span
-              >
-            </button>
-          {/each}
-        </div>
-        <div class="scrollhint" aria-hidden="true">▲ ▼</div>
-      </div>
-    {:else}
+  <p class="caption">what i'm listening to right now</p>
+
+  <div class="chassis">
+    <div class="screen">
       {#key refresh}
         <div class="txt">
-          <div class="ttl">
+          <p class="ttl">
             <span
               class="mq"
               use:marquee={{ text: deck.title, animation: "mq-deck" }}
             ></span>
-          </div>
-          <div class="art">
+          </p>
+          <p class="art">
             <span
               class="mq"
               use:marquee={{ text: deck.artist, animation: "mq-deck" }}
             ></span>
-          </div>
+          </p>
         </div>
       {/key}
+
       <div class="vu" aria-hidden="true">
-        {#each Array(VU_ROWS).keys() as r}
+        {#each BANDS as band (band.duration)}
           <div class="vrow">
-            <span class="lvl" style="animation-delay: -{(r * 0.22).toFixed(2)}s"
+            <span class="ghost"></span>
+            <span
+              class="lvl"
+              style:--band-duration={band.duration}
+              style:--band-delay={band.delay}
+              style:--band-idle={band.idle}
+            ></span>
+            <span
+              class="cap"
+              style:--band-duration={band.duration}
+              style:--band-delay={band.delay}
+              style:--band-idle={band.idle}
             ></span>
           </div>
         {/each}
       </div>
-    {/if}
-  </div>
+    </div>
 
-  <div
-    class="seekrow"
-    role="progressbar"
-    aria-label="Seek"
-    aria-valuemin="0"
-    aria-valuemax="100"
-    aria-valuenow={Math.round(deck.progress * 100)}
-  >
-    <span class="time">{formatTime(deck.currentTime)}</span>
-
-    <button
-      type="button"
-      class="seek"
-      data-no-drag
-      aria-label="Seek within track"
-      onclick={seekTo}
-    >
-      <span class="needle" style="left: {deck.progress * 100}%"></span>
-    </button>
-    <span class="time"
-      >{deck.duration ? formatTime(deck.duration) : "0:30"}</span
-    >
-  </div>
-
-  <div class="bar">
-    <button
-      class="menu"
-      class:act={deck.listOpen}
-      data-no-drag
-      onclick={() => (deck.listOpen = !deck.listOpen)}
-    >
-      MENU
-    </button>
-    <div class="transport">
+    <div class="seekrow">
+      <span class="time">{formatTime(deck.currentTime)}</span>
       <button
-        class="btn"
+        class="seek"
         data-no-drag
-        aria-label="Previous track"
-        onclick={() => deck.step(-1)}
+        role="slider"
+        aria-label="Seek within track"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={Math.round(deck.progress * 100)}
+        aria-valuetext="{formatTime(deck.currentTime)} elapsed"
+        onclick={seekToPointer}
+        onkeydown={seekByKey}
       >
-        <span class="g-prev"></span>
-      </button>
-      <button
-        class="btn big"
-        data-no-drag
-        aria-label="Play or pause"
-        onclick={deck.togglePlay}
-      >
-        <span class="g-play"></span>
-        <span class="g-pause"><i></i><i></i></span>
-      </button>
-      <button
-        class="btn"
-        data-no-drag
-        aria-label="Next track"
-        onclick={() => deck.step(1)}
-      >
-        <span class="g-next"></span>
+        <span class="trough"></span>
+        <span class="fill" style:width="{deck.progress * 100}%"></span>
+        <span class="ticks" aria-hidden="true"></span>
+        <span class="needle" style:left="{deck.progress * 100}%"></span>
       </button>
     </div>
-    <div class="count" aria-label="Track {deck.counter}">
-      {String(deck.current + 1).padStart(2, "0")}<b
-        >&nbsp;/&nbsp;{String(deck.tracks.length).padStart(2, "0")}</b
-      >
+
+    <div class="bar">
+      <div class="transport">
+        <button
+          class="btn"
+          data-no-drag
+          aria-label="Previous track"
+          onclick={() => deck.step(-1)}
+        >
+          <svg
+            viewBox="0 0 8 8"
+            shape-rendering="crispEdges"
+            aria-hidden="true"
+          >
+            <path d="M0 0H2V8H0Z M8 0V8H7V7H6V6H5V5H4V3H5V2H6V1H7V0Z" />
+          </svg>
+        </button>
+        <button
+          class="btn big"
+          data-no-drag
+          aria-label={deck.playing ? "Pause" : "Play"}
+          onclick={deck.togglePlay}
+        >
+          {#if deck.playing}
+            <svg
+              viewBox="0 0 8 8"
+              shape-rendering="crispEdges"
+              aria-hidden="true"
+            >
+              <path d="M1 0H3V8H1Z M5 0H7V8H5Z" />
+            </svg>
+          {:else}
+            <svg
+              viewBox="0 0 8 8"
+              shape-rendering="crispEdges"
+              aria-hidden="true"
+            >
+              <path d="M1 0H3V1H4V2H5V3H6V5H5V6H4V7H3V8H1Z" />
+            </svg>
+          {/if}
+        </button>
+        <button
+          class="btn"
+          data-no-drag
+          aria-label="Next track"
+          onclick={() => deck.step(1)}
+        >
+          <svg
+            viewBox="0 0 8 8"
+            shape-rendering="crispEdges"
+            aria-hidden="true"
+          >
+            <path d="M0 0V8H1V7H2V6H3V5H4V3H3V2H2V1H1V0Z M6 0H8V8H6Z" />
+          </svg>
+        </button>
+      </div>
+
+      <ul class="presets" aria-label="Tracks">
+        {#each deck.tracks as track, index (index)}
+          <li>
+            <button
+              class="preset"
+              class:on={index === deck.current}
+              data-no-drag
+              aria-current={index === deck.current ? "true" : undefined}
+              aria-label="Track {index + 1}"
+              disabled={!track.preview}
+              onclick={() => deck.selectTrack(index, true)}
+            >
+              {index + 1}
+            </button>
+          </li>
+        {/each}
+      </ul>
     </div>
   </div>
-</div>
+</section>
 
 <style>
   .deck {
-    width: 100%;
-    padding: var(--panel-gap, 22px);
-    background: var(--player-surface);
-    box-shadow:
-      0 0 0 4px var(--ui-accent-deep) inset,
-      0 0 0 8px var(--player-edge) inset;
+    font-size: 8px;
+    line-height: 1;
+  }
+
+  .caption {
+    color: var(--ui-highlight);
+    margin-bottom: 10px;
+  }
+
+  .chassis {
+    padding: 16px;
+    box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
     display: flex;
     flex-direction: column;
-    gap: var(--deck-inner-gap, 16px);
+    gap: 14px;
   }
 
   .screen {
-    background: var(--player-screen);
-    box-shadow: 0 0 0 2px var(--ui-accent-deep) inset;
-    padding: 12px 14px;
     position: relative;
-    overflow: hidden;
+    min-height: 68px;
+    padding: 14px 16px;
+    background: var(--ui-ink);
     display: flex;
     align-items: center;
-    gap: 16px;
-    min-height: 60px;
+    gap: 24px;
+    overflow: hidden;
   }
+
   .screen::after {
     content: "";
     position: absolute;
@@ -188,8 +240,8 @@
     pointer-events: none;
     background: repeating-linear-gradient(
       0deg,
-      var(--player-scanline) 0 1px,
-      transparent 1px 3px
+      var(--player-scanline) 0 2px,
+      transparent 2px 4px
     );
   }
 
@@ -197,25 +249,29 @@
     flex: 1;
     min-width: 0;
   }
+
   .ttl,
   .art {
     white-space: nowrap;
     overflow: hidden;
   }
+
   .ttl {
-    color: var(--ui-highlight);
-    font-size: 12px;
-    line-height: 1.6;
+    font-size: 16px;
+    color: var(--ui-accent);
   }
+
   .art {
-    color: var(--text-muted);
-    font-size: 8px;
-    margin-top: 9px;
+    color: var(--ui-accent-deep);
+    letter-spacing: 2px;
+    margin-top: 14px;
   }
+
   .mq {
     display: inline-flex;
     gap: 33px;
   }
+
   @keyframes -global-mq-deck {
     to {
       transform: translateX(calc(-1 * var(--mq-dist, 0px)));
@@ -223,267 +279,213 @@
   }
 
   .vu {
-    flex: 0 0 auto;
+    flex: 0 0 232px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    width: 120px;
-    height: 36px;
+    gap: 4px;
   }
+
   .vrow {
     position: relative;
-    height: 6px;
-    background-image: repeating-linear-gradient(
-      90deg,
-      var(--player-meter) 0 9px,
-      transparent 9px 12px
-    );
+    height: 10px;
   }
-  .vrow .lvl {
-    --lvl: var(--ui-accent);
+
+  .ghost,
+  .lvl {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 45%;
+    inset: 0;
     background-image: repeating-linear-gradient(
       90deg,
-      var(--lvl) 0 9px,
-      transparent 9px 12px
+      currentColor 0 12px,
+      transparent 12px 16px
     );
   }
-  .is-buffering .vrow .lvl {
-    --lvl: var(--text-muted);
+
+  .ghost {
+    color: var(--player-meter-edge);
   }
-  .is-playing:not(.is-buffering) .vrow .lvl {
-    animation: vu 1.1s steps(6) infinite;
+
+  .lvl {
+    color: var(--ui-accent);
+    width: calc(var(--band-idle) * 16px);
+    animation: level var(--band-duration) steps(7, end) var(--band-delay)
+      infinite alternate;
+    animation-play-state: paused;
   }
-  @keyframes vu {
-    0% {
-      width: 20%;
+
+  .is-buffering .lvl {
+    color: var(--text-muted);
+  }
+
+  .is-playing:not(.is-buffering) .lvl {
+    animation-play-state: running;
+  }
+
+  @keyframes level {
+    from {
+      width: 32px;
     }
-    25% {
-      width: 80%;
-    }
-    50% {
-      width: 45%;
-    }
-    75% {
-      width: 100%;
-    }
-    100% {
-      width: 35%;
+    to {
+      width: 176px;
     }
   }
 
-  .listview {
+  .cap {
     position: absolute;
-    inset: 0;
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
+    top: 0;
+    left: calc(var(--band-idle) * 16px);
+    width: 4px;
+    height: 10px;
+    background: var(--ui-highlight);
+    animation: peak calc(var(--band-duration) * 3) steps(9, end)
+      var(--band-delay) infinite alternate;
+    animation-play-state: paused;
   }
-  .rows {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: none;
+
+  .is-playing:not(.is-buffering) .cap {
+    animation-play-state: running;
   }
-  .rows::-webkit-scrollbar {
-    display: none;
-  }
-  .row {
-    display: flex;
-    gap: 9px;
-    width: 100%;
-    text-align: left;
-    border: 0;
-    font-family: inherit;
-    font-size: 8px;
-    line-height: 1.6;
-    color: var(--ui-accent);
-    background: var(--player-surface);
-    padding: 6px 8px;
-    margin-bottom: 4px;
-    cursor: pointer;
-  }
-  .row .rt {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .row .n {
-    color: var(--text-muted);
-  }
-  .row.on {
-    background: var(--ui-accent);
-    color: var(--ui-ink);
-  }
-  .row.on .n {
-    color: var(--ui-ink);
-  }
-  .row:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-  .scrollhint {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    color: var(--text-muted);
-    font-size: 9px;
+
+  @keyframes peak {
+    from {
+      left: 48px;
+    }
+    to {
+      left: 192px;
+    }
   }
 
   .seekrow {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
   }
+
   .time {
-    font-size: 8px;
-    color: var(--text-muted);
     flex: 0 0 auto;
+    color: var(--ui-accent-deep);
+    letter-spacing: 2px;
   }
+
   .seek {
+    position: relative;
     flex: 1;
-    height: 16px;
+    height: 14px;
     padding: 0;
     border: 0;
-    background: var(--player-screen);
-    box-shadow: 0 0 0 2px var(--ui-accent-deep) inset;
-    position: relative;
-    background-image: repeating-linear-gradient(
-      90deg,
-      var(--ui-accent-deep) 0 1px,
-      transparent 1px 18px
-    );
+    background: none;
     cursor: pointer;
   }
+
+  .trough,
+  .fill {
+    position: absolute;
+    top: 6px;
+    height: 2px;
+  }
+
+  .trough {
+    left: 0;
+    right: 0;
+    background: var(--player-meter-edge);
+  }
+
+  .fill {
+    left: 0;
+    background: var(--ui-accent-deep);
+  }
+
+  .ticks {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 2px;
+    height: 2px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--player-meter-edge) 0 2px,
+      transparent 2px calc(100% / 6)
+    );
+  }
+
   .needle {
     position: absolute;
-    top: -4px;
-    bottom: -4px;
-    width: 3px;
-    margin-left: -1px;
-    background: var(--ui-highlight);
+    top: 2px;
+    width: 2px;
+    height: 10px;
+    background: var(--ui-accent);
   }
 
   .bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
   }
-  .menu {
-    font-family: inherit;
-    font-size: 9px;
-    letter-spacing: 1px;
-    color: var(--ui-accent);
-    background: var(--player-channel);
-    border: 0;
-    padding: 12px 14px;
-    box-shadow:
-      0 0 0 2px var(--player-edge),
-      0 0 0 3px var(--ui-accent-deep);
-    cursor: pointer;
-  }
-  .menu.act {
-    background: var(--ui-accent);
-    color: var(--ui-ink);
-    box-shadow:
-      0 0 0 2px var(--player-edge),
-      0 0 0 3px var(--ui-accent);
-  }
+
   .transport {
     display: flex;
-    align-items: center;
-    gap: 14px;
+    gap: 8px;
   }
+
   .btn {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
+    padding: 9px;
     border: 0;
-    background: var(--player-channel);
-    box-shadow:
-      0 0 0 2px var(--player-edge),
-      0 0 0 3px var(--ui-accent-deep);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: none;
+    box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
+    display: grid;
+    place-items: center;
     cursor: pointer;
   }
+
+  .btn svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--ui-accent);
+  }
+
   .btn.big {
-    width: 44px;
-    height: 44px;
     background: var(--ui-accent);
-    box-shadow:
-      0 0 0 2px var(--player-edge),
-      0 0 0 3px var(--ui-accent);
+    box-shadow: none;
   }
-  .g-prev,
-  .g-next {
-    width: 0;
-    height: 0;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    position: relative;
+
+  .btn.big svg {
+    fill: var(--ui-ink);
   }
-  .g-next {
-    border-left: 13px solid var(--ui-accent);
-  }
-  .g-prev {
-    border-right: 13px solid var(--ui-accent);
-  }
-  .g-next::after {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: -8px;
-    width: 3px;
-    height: 16px;
-    background: var(--ui-accent);
-  }
-  .g-prev::after {
-    content: "";
-    position: absolute;
-    right: 2px;
-    top: -8px;
-    width: 3px;
-    height: 16px;
-    background: var(--ui-accent);
-  }
-  .g-play {
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 16px solid var(--ui-ink);
-    margin-left: 3px;
-  }
-  .g-pause {
-    display: none;
-    gap: 4px;
-  }
-  .g-pause i {
-    display: block;
-    width: 4px;
-    height: 16px;
-    background: var(--ui-ink);
-  }
-  .is-playing .g-play {
-    display: none;
-  }
-  .is-playing .g-pause {
+
+  .presets {
+    margin-left: auto;
+    list-style: none;
     display: flex;
+    gap: 6px;
   }
-  .count {
-    font-size: 9px;
-    color: var(--ui-accent);
-    letter-spacing: 1px;
-    flex: 0 0 auto;
+
+  .preset {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    font-family: inherit;
+    font-size: 8px;
+    color: var(--ui-accent-deep);
+    background: none;
+    box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
+    cursor: pointer;
   }
-  .count b {
-    color: var(--text-muted);
-    font-weight: normal;
+
+  .preset.on {
+    color: var(--ui-ink);
+    background: var(--ui-accent-deep);
+  }
+
+  .preset:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  @media (max-height: 750px) {
+    .caption {
+      display: none;
+    }
   }
 </style>

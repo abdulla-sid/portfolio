@@ -42,21 +42,41 @@ function renderDeck(controller = createDeck()) {
 }
 
 describe("DeckPlayer", () => {
-  it("opens a safe track list and returns to now-playing after selection", async () => {
-    const { container, getByText } = renderDeck();
+  it("offers every track as a preset and disables ones without a preview", async () => {
+    const { container } = renderDeck();
     await waitFor(() => expect(ttl(container)).toContain("Song A"));
 
-    await fireEvent.click(getByText("MENU"));
+    const presets = container.querySelectorAll<HTMLButtonElement>(".preset");
+    expect(presets).toHaveLength(2);
+    expect(presets[1].disabled).toBe(true);
 
-    const rows = container.querySelectorAll(".row");
-    expect(rows).toHaveLength(2);
-    expect((rows[1] as HTMLButtonElement).disabled).toBe(true);
+    expect(presets[0].getAttribute("aria-current")).toBe("true");
+    expect(presets[1].getAttribute("aria-current")).toBeNull();
 
-    expect(container.querySelector(".vu")).toBeNull();
-    await fireEvent.click(container.querySelector(".row") as HTMLButtonElement);
-
-    expect(container.querySelector(".row")).toBeNull();
+    // now-playing stays on screen — selecting a track is not a mode switch
+    await fireEvent.click(presets[0]);
     expect(container.querySelector(".vu")).not.toBeNull();
+    expect(ttl(container)).toContain("Song A");
+  });
+
+  it("seeks with the keyboard and ignores keyboard-synthesised clicks", async () => {
+    const { container, controller } = renderDeck();
+    await waitFor(() => expect(ttl(container)).toContain("Song A"));
+
+    const seek = container.querySelector(".seek") as HTMLElement;
+    expect(seek.getAttribute("role")).toBe("slider");
+
+    const seekSpy = vi.spyOn(controller, "seek");
+
+    // a click with no pointer behind it reports clientX 0 and must not seek
+    await fireEvent.click(seek, { detail: 0, clientX: 0 });
+    expect(seekSpy).not.toHaveBeenCalled();
+
+    await fireEvent.keyDown(seek, { key: "End" });
+    expect(seekSpy).toHaveBeenLastCalledWith(1);
+
+    await fireEvent.keyDown(seek, { key: "Home" });
+    expect(seekSpy).toHaveBeenLastCalledWith(0);
   });
 
   it("persists state across remounts and never constructs a second Audio", async () => {
@@ -70,15 +90,12 @@ describe("DeckPlayer", () => {
 
     const first = render(DeckPlayer, { controller });
     await waitFor(() => expect(ttl(first.container)).toContain("Song A"));
-
-    await fireEvent.click(
-      first.container.querySelector(".menu") as HTMLElement,
-    );
-    expect(first.container.querySelectorAll(".row")).toHaveLength(2);
+    expect(first.container.querySelectorAll(".preset")).toHaveLength(2);
     first.unmount();
 
     const second = render(DeckPlayer, { controller });
-    expect(second.container.querySelectorAll(".row")).toHaveLength(2);
+    expect(second.container.querySelectorAll(".preset")).toHaveLength(2);
+    expect(ttl(second.container)).toContain("Song A");
 
     expect(createAudio).toHaveBeenCalledTimes(1);
   });
