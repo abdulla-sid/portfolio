@@ -48,6 +48,29 @@ async function openAboutOnDesktop(page) {
   await page.waitForSelector(ABOUT_DIALOG, { visible: true });
 }
 
+async function aboutColumnEdges(page) {
+  return page.evaluate(() => {
+    const edges = (selector) => {
+      const node = document.querySelector(selector);
+      const box = node.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left };
+    };
+
+    const photo = edges(".photo");
+    const note = edges(".note");
+    const text = edges(".text");
+    const deck = edges(".deck");
+
+    return {
+      layout: getComputedStyle(document.querySelector(".about")).display,
+      photoTopMeetsTextTop: photo.top === text.top,
+      noteBottomMeetsDeckBottom: note.bottom === deck.bottom,
+      photoLeftMeetsNoteLeft: photo.left === note.left,
+      textLeftMeetsDeckLeft: text.left === deck.left,
+    };
+  });
+}
+
 async function openAboutOnMobile(page) {
   await page.click('button[aria-label="Toggle navigation"]');
   await clickFirstMenuItem(page);
@@ -146,6 +169,14 @@ try {
     await page.evaluate(() => document.activeElement?.getAttribute("role")),
     "dialog",
   );
+
+  assert.deepEqual(await aboutColumnEdges(page), {
+    layout: "grid",
+    photoTopMeetsTextTop: true,
+    noteBottomMeetsDeckBottom: true,
+    photoLeftMeetsNoteLeft: true,
+    textLeftMeetsDeckLeft: true,
+  });
 
   await page.click('button[aria-label="Close"]');
   await page.waitForSelector(ABOUT_DIALOG, { hidden: true });

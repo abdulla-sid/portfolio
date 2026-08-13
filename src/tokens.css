@@ -136,6 +136,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
   --desktop-footer-band: 39px;
+  --menu-item-width: 232px;
+  --menu-item-clearance: 16px;
+  --menu-title-clearance: 500px;
 
   --mobile-panel-inline: 14px;
   --mobile-footer-band: 47px;
