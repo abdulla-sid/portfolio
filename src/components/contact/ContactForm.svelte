@@ -1,6 +1,12 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
-  import { litSegments, MESSAGE_LIMIT, send, validate } from "./contact";
+  import {
+    litSegments,
+    MESSAGE_LIMIT,
+    send,
+    TRACK_LIMIT,
+    validate,
+  } from "./contact";
   import {
     loadTurnstile,
     turnstileSiteKey,
@@ -102,7 +108,7 @@
   async function onSubmit(event: SubmitEvent) {
     event.preventDefault();
     if (phase === "sending") return;
-    const fields = { name, email, message, website };
+    const fields = { name, email, track, message, website };
     const problem = validate(fields);
     if (problem) {
       error = problem;
@@ -185,7 +191,13 @@
 
     <label class="track">
       <span class="key">A TRACK, IF YOU HAVE ONE — OPTIONAL</span>
-      <input name="track" type="text" bind:value={track} autocomplete="off" />
+      <input
+        name="track"
+        type="text"
+        bind:value={track}
+        autocomplete="off"
+        maxlength={TRACK_LIMIT}
+      />
     </label>
 
     <div class="message">

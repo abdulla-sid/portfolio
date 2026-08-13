@@ -1,6 +1,7 @@
 export interface ContactFields {
   name: string;
   email: string;
+  track?: string;
   message: string;
   website?: string;
 }
@@ -8,6 +9,7 @@ export interface ContactFields {
 export const CONTACT_ENDPOINT = "/api/contact";
 
 export const MESSAGE_LIMIT = 1000;
+export const TRACK_LIMIT = 120;
 
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -21,6 +23,7 @@ export function validate(fields: ContactFields): string | null {
   if (!fields.email.trim()) return "EMAIL REQUIRED";
   if (!EMAIL_SHAPE.test(fields.email.trim())) return "EMAIL LOOKS WRONG";
   if (fields.email.trim().length > 254) return "EMAIL TOO LONG";
+  if ((fields.track?.trim().length ?? 0) > TRACK_LIMIT) return "TRACK TOO LONG";
   if (!fields.message.trim()) return "MESSAGE REQUIRED";
   if (fields.message.trim().length > MESSAGE_LIMIT) return "MESSAGE TOO LONG";
   return null;
@@ -37,6 +40,7 @@ export async function send(
     body: JSON.stringify({
       name: fields.name,
       email: fields.email,
+      track: fields.track,
       message: fields.message,
       website: fields.website,
       turnstileToken,

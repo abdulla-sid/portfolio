@@ -13,10 +13,14 @@ interface FunctionContext {
 interface ContactPayload {
   name: string;
   email: string;
+  track?: string;
   message: string;
   turnstileToken: string;
   website?: string;
 }
+
+const MESSAGE_LIMIT = 1000;
+const TRACK_LIMIT = 120;
 
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TURNSTILE_VERIFY =
@@ -46,6 +50,7 @@ function normalizedPayload(value: unknown): ContactPayload | null {
     typeof input.email !== "string" ||
     typeof input.message !== "string" ||
     typeof input.turnstileToken !== "string" ||
+    (input.track !== undefined && typeof input.track !== "string") ||
     (input.website !== undefined && typeof input.website !== "string")
   )
     return null;
@@ -53,6 +58,7 @@ function normalizedPayload(value: unknown): ContactPayload | null {
   const payload = {
     name: input.name.trim().replace(/[\r\n]+/g, " "),
     email: input.email.trim(),
+    track: input.track?.trim().replace(/[\r\n]+/g, " "),
     message: input.message.trim(),
     turnstileToken: input.turnstileToken,
     website: input.website?.trim(),
@@ -63,8 +69,9 @@ function normalizedPayload(value: unknown): ContactPayload | null {
     payload.name.length > 100 ||
     !EMAIL_SHAPE.test(payload.email) ||
     payload.email.length > 254 ||
+    (payload.track?.length ?? 0) > TRACK_LIMIT ||
     !payload.message ||
-    payload.message.length > 5000 ||
+    payload.message.length > MESSAGE_LIMIT ||
     !payload.turnstileToken ||
     payload.turnstileToken.length > 2048
   )
@@ -120,7 +127,13 @@ async function deliver(
         name: payload.name.slice(0, BREVO_NAME_LIMIT),
       },
       subject: `Portfolio contact from ${payload.name}`,
-      textContent: `Name: ${payload.name}\nEmail: ${payload.email}\n\n${payload.message}`,
+      textContent: [
+        `Name: ${payload.name}`,
+        `Email: ${payload.email}`,
+        ...(payload.track ? [`Track: ${payload.track}`] : []),
+        "",
+        payload.message,
+      ].join("\n"),
     }),
   });
   if (!result.ok) return false;
