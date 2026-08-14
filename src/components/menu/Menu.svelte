@@ -3,6 +3,7 @@
   import { MENU_ITEMS, type MenuId } from "../../app/menu";
   import { contactFormModule } from "../contact/lazyForm";
   import { experienceMapModule } from "../map/lazyMap";
+  import { warmAboutPhoto } from "../panels/aboutPhoto";
   import { prefersReducedMotion } from "../../lib/motion";
   import { createMenuMachine, type MenuState } from "./machine";
 
@@ -38,11 +39,13 @@
 
   function warmPanel(id: MenuId) {
     const load =
-      id === "experience"
-        ? experienceMapModule
-        : id === "contact"
-          ? contactFormModule
-          : undefined;
+      id === "about"
+        ? warmAboutPhoto
+        : id === "experience"
+          ? experienceMapModule
+          : id === "contact"
+            ? contactFormModule
+            : undefined;
     void load?.().catch(() => {});
   }
 

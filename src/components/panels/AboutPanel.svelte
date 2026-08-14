@@ -1,5 +1,5 @@
 <script lang="ts">
-  import aboutPhoto from "../../assets/about.jpeg";
+  import { aboutPhoto } from "./aboutPhoto";
   import DeckPlayer from "../player/DeckPlayer.svelte";
   import StickyNote from "./StickyNote.svelte";
 </script>
