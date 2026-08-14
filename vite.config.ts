@@ -7,11 +7,15 @@ const MAP_CHUNK = /^assets\/ExperienceMap-[^.]+\.js$/;
 function publishMapChunkName(): Plugin {
   return {
     name: "publish-map-chunk-name",
+    apply: "build",
     transformIndexHtml(_html, context) {
       const file = Object.keys(context.bundle ?? {}).find((name) =>
         MAP_CHUNK.test(name),
       );
-      if (!file) return [];
+      if (!file)
+        throw new Error(
+          `No bundled file matched ${MAP_CHUNK.source}. The map chunk cannot be warmed until this pattern matches Vite's output again.`,
+        );
       return [
         {
           tag: "meta",
