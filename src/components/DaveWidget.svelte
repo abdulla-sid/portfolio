@@ -299,6 +299,11 @@
           style:width={unit(callout.diagonalLength)}
           style:--ann-angle="{callout.diagonalAngle}deg"
         ></div>
+        <div
+          class="ann-anchor"
+          style:left={unit(callout.x)}
+          style:top={unit(callout.y)}
+        ></div>
       </div>
     {/each}
   </div>
@@ -320,8 +325,8 @@
   .dave-widget {
     --dave-scale: 2px;
     --ann-box-width: 176px;
-    --ann-box-height: 97px;
     --ann-hairline: calc(1 * var(--dave-scale));
+    --ann-cap-height: calc(6 * var(--dave-scale));
     --scan-duration: 620ms;
     --scan-progress: 0;
     --scan-edge: calc(var(--scan-from) * var(--dave-scale));
@@ -573,18 +578,50 @@
     position: absolute;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     width: var(--ann-box-width);
-    height: var(--ann-box-height);
-    padding: 9px 11px;
-    border: 2px solid var(--border-primary);
-    background: var(--surface-page);
+    padding: calc(var(--ann-cap-height) + 8px) 11px 11px;
+    border: var(--ann-hairline) solid var(--border-primary);
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        var(--dave-callout-scanline) 0 var(--dave-scale),
+        transparent var(--dave-scale) calc(2 * var(--dave-scale))
+      ),
+      var(--dave-callout-fill);
     color: var(--text-primary);
     font-size: 9px;
     line-height: 2;
     letter-spacing: 0.5px;
     transform: translateY(-50%);
     opacity: clamp(0, calc((var(--ann-t) - 0.78) / 0.22), 1);
+  }
+
+  .ann-box::before {
+    --tick-pitch: calc(3 * var(--dave-scale));
+    --tick-size: calc(11 * var(--dave-scale)) calc(3 * var(--dave-scale));
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--ann-cap-height);
+    background:
+      repeating-linear-gradient(
+          to right,
+          var(--ui-ink) 0 var(--ann-hairline),
+          transparent var(--ann-hairline) var(--tick-pitch)
+        )
+        calc(100% - var(--tick-pitch)) center / var(--tick-size) no-repeat,
+      var(--ui-accent);
+  }
+
+  .ann-anchor {
+    position: absolute;
+    width: calc(3 * var(--dave-scale));
+    height: calc(3 * var(--dave-scale));
+    background: var(--ui-accent);
+    transform: translate(-50%, -50%);
+    opacity: clamp(0, calc(var(--ann-t) / 0.06), 1);
   }
 
   .ann-box span {

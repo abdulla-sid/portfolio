@@ -114,6 +114,8 @@
   --map-background: var(--surface-page);
   --map-road: var(--ui-accent);
 
+  --dave-callout-fill: var(--player-screen);
+  --dave-callout-scanline: var(--player-scanline);
   --dave-figure-light-strong: var(--color-dave-tint-a38);
   --dave-figure-light-medium: var(--color-dave-tint-a26);
   --dave-figure-light-subtle: var(--color-dave-tint-a10);
