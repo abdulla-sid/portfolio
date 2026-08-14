@@ -308,6 +308,13 @@
     box-shadow: 0 0 0 calc(2 * var(--u)) var(--ui-accent-deep) inset;
     padding: calc(6 * var(--u));
     z-index: 4;
+    max-height: calc(150 * var(--u));
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .list::-webkit-scrollbar {
+    display: none;
   }
 
   .track {
