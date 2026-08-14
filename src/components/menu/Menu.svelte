@@ -153,7 +153,7 @@
     display: flex;
     flex-direction: column;
     gap: 18px;
-    width: min(330px, 44vw);
+    width: min(var(--menu-item-width), 44vw);
   }
 
   .menu-item {

@@ -46,7 +46,6 @@
     flex: 0 0 auto;
     width: var(--note-width);
     height: var(--note-height);
-    margin-left: -20px;
     color: var(--note-ink);
   }
 
@@ -93,11 +92,5 @@
   dd {
     font-size: 10px;
     line-height: 1.5;
-  }
-
-  @media (max-width: 1440px), (max-height: 850px) {
-    .note {
-      display: none;
-    }
   }
 </style>
