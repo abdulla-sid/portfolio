@@ -11,12 +11,22 @@
   import RotateNotice from "./components/RotateNotice.svelte";
   import { providePlayer } from "./components/player/context.svelte";
   import { preloadFrameArt } from "./lib/widget/frame";
+  import { whenIdle } from "./lib/idle";
+  import { mapChunkHref, preloadModule } from "./lib/prefetch";
+  import { contactFormModule } from "./components/contact/lazyForm";
   import type { MenuId } from "./app/menu";
 
   const player = providePlayer();
   onDestroy(() => player.dispose());
 
-  onMount(preloadFrameArt);
+  onMount(() => {
+    preloadFrameArt();
+    whenIdle(() => {
+      void contactFormModule().catch(() => {});
+      const mapChunk = mapChunkHref();
+      if (mapChunk) preloadModule(mapChunk);
+    });
+  });
 
   let activeMenuId: MenuId | null = $state(null);
   let aboutPlayerVisible = $state(false);
