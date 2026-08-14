@@ -327,6 +327,8 @@
     --ann-box-width: 176px;
     --ann-hairline: calc(1 * var(--dave-scale));
     --ann-cap-height: calc(6 * var(--dave-scale));
+    --ann-pad-top: calc(var(--ann-cap-height) + 4 * var(--dave-scale));
+    --ann-pad-bottom: calc(6 * var(--dave-scale));
     --scan-duration: 620ms;
     --scan-progress: 0;
     --scan-edge: calc(var(--scan-from) * var(--dave-scale));
@@ -579,7 +581,7 @@
     display: flex;
     flex-direction: column;
     width: var(--ann-box-width);
-    padding: calc(var(--ann-cap-height) + 8px) 11px 11px;
+    padding: var(--ann-pad-top) 11px var(--ann-pad-bottom);
     border: var(--ann-hairline) solid var(--border-primary);
     background:
       repeating-linear-gradient(
@@ -592,7 +594,8 @@
     font-size: 9px;
     line-height: 2;
     letter-spacing: 0.5px;
-    transform: translateY(-50%);
+    transform: translateY(-50%)
+      translateY(calc((var(--ann-pad-bottom) - var(--ann-pad-top)) / 2));
     opacity: clamp(0, calc((var(--ann-t) - 0.78) / 0.22), 1);
   }
 
