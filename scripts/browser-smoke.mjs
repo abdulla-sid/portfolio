@@ -8,6 +8,7 @@ const HOST = "127.0.0.1";
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 const ABOUT_DIALOG = '[role="dialog"][aria-label="ABOUT ME window"]';
+const CLOSE_BUTTON = 'button[aria-label="Close"]';
 
 function chromeExecutable() {
   const candidates = [
@@ -43,9 +44,24 @@ async function clickFirstMenuItem(page) {
   await item.click();
 }
 
+async function waitForWindowSettled(page) {
+  await page.waitForFunction(
+    (selector) => {
+      const button = document.querySelector(selector);
+      if (!button) return false;
+      const laidOut = Number.parseFloat(getComputedStyle(button).height);
+      const painted = button.getBoundingClientRect().height;
+      return Math.abs(painted - laidOut) < 0.5;
+    },
+    {},
+    CLOSE_BUTTON,
+  );
+}
+
 async function openAboutOnDesktop(page) {
   await clickFirstMenuItem(page);
   await page.waitForSelector(ABOUT_DIALOG, { visible: true });
+  await waitForWindowSettled(page);
 }
 
 async function aboutColumnEdges(page) {
@@ -75,6 +91,7 @@ async function openAboutOnMobile(page) {
   await page.click('button[aria-label="Toggle navigation"]');
   await clickFirstMenuItem(page);
   await page.waitForSelector(ABOUT_DIALOG, { visible: true });
+  await waitForWindowSettled(page);
 }
 
 let browser;
@@ -178,7 +195,7 @@ try {
     textLeftMeetsDeckLeft: true,
   });
 
-  await page.click('button[aria-label="Close"]');
+  await page.click(CLOSE_BUTTON);
   await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
   assert.equal(
     await page.evaluate(() =>
