@@ -12,7 +12,12 @@
   import { providePlayer } from "./components/player/context.svelte";
   import { preloadFrameArt } from "./lib/widget/frame";
   import { whenIdle } from "./lib/idle";
-  import { mapChunkHref, preloadModule } from "./lib/prefetch";
+  import {
+    loadStyle,
+    mapChunkHref,
+    mapStyleHref,
+    preloadModule,
+  } from "./lib/prefetch";
   import { contactFormModule } from "./components/contact/lazyForm";
   import type { MenuId } from "./app/menu";
 
@@ -25,6 +30,8 @@
       void contactFormModule().catch(() => {});
       const mapChunk = mapChunkHref();
       if (mapChunk) preloadModule(mapChunk);
+      const mapStyle = mapStyleHref();
+      if (mapStyle) loadStyle(mapStyle);
     });
   });
 
