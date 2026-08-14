@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import { MENU_ITEMS, type MenuId } from "../../app/menu";
+  import { contactFormModule } from "../contact/lazyForm";
   import { experienceMapModule } from "../map/lazyMap";
   import { prefersReducedMotion } from "../../lib/motion";
   import { createMenuMachine, type MenuState } from "./machine";
@@ -31,11 +32,18 @@
   );
 
   function commit(index: number) {
+    warmPanel(MENU_ITEMS[index].id);
     onCommit?.(MENU_ITEMS[index].id);
   }
 
   function warmPanel(id: MenuId) {
-    if (id === "experience") void experienceMapModule();
+    const load =
+      id === "experience"
+        ? experienceMapModule
+        : id === "contact"
+          ? contactFormModule
+          : undefined;
+    void load?.().catch(() => {});
   }
 
   function focusedIndex(): number {

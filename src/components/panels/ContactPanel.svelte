@@ -1,5 +1,7 @@
 <script lang="ts">
-  const formModule = import("../contact/ContactForm.svelte");
+  import { contactFormModule } from "../contact/lazyForm";
+
+  let formModule = $state(contactFormModule());
 </script>
 
 <div class="contact">
@@ -9,6 +11,16 @@
   <div class="form-slot">
     {#await formModule then { default: ContactForm }}
       <ContactForm />
+    {:catch}
+      <p class="form-failed" role="alert">
+        THE FORM DID NOT LOAD.
+        <button
+          type="button"
+          onclick={() => (formModule = contactFormModule())}
+        >
+          RETRY
+        </button>
+      </p>
     {/await}
   </div>
 </div>
@@ -22,6 +34,26 @@
 
   .lede {
     margin-bottom: 30px;
+  }
+
+  .form-failed {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+
+  .form-failed button {
+    border: 2px solid var(--ui-accent);
+    background: none;
+    padding: 8px 14px;
+    color: var(--ui-accent);
+    font: inherit;
+    font-size: 8px;
+    letter-spacing: 1px;
+    cursor: pointer;
   }
 
   .form-slot {

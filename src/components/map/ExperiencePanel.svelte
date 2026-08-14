@@ -3,7 +3,7 @@
   import { EXPERIENCES } from "./experiences";
   import { experienceMapModule } from "./lazyMap";
 
-  const mapModule = experienceMapModule();
+  let mapModule = $state(experienceMapModule());
 
   let activeIndex = $state(0);
 
@@ -43,6 +43,15 @@
         </div>
       {:then { default: ExperienceMap }}
         <ExperienceMap {focus} {selectedId} />
+      {:catch}
+        <div class="map-pending">
+          <button
+            type="button"
+            onclick={() => (mapModule = experienceMapModule())}
+          >
+            MAP DID NOT LOAD — RETRY
+          </button>
+        </div>
       {/await}
     </div>
   </Pager>
@@ -160,6 +169,17 @@
     color: var(--text-muted);
     font-size: 8px;
     letter-spacing: 1px;
+  }
+
+  .map-pending button {
+    border: 2px solid var(--ui-accent);
+    background: none;
+    padding: 10px 14px;
+    color: var(--ui-accent);
+    font: inherit;
+    font-size: 8px;
+    letter-spacing: 1px;
+    cursor: pointer;
   }
 
   @media (max-width: 1100px) {
