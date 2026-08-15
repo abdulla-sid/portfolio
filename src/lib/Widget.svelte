@@ -204,7 +204,7 @@
   @media (min-width: 901px) {
     .widget[data-widget-id="menu-window"] {
       --menu-window-scale: 0.95;
-      --menu-window-top: 125px;
+      --menu-window-top-min: 125px;
       --panel-body: 12px;
       --panel-label: 9px;
       --panel-gap: 22px;
@@ -214,15 +214,30 @@
         var(--page-margin) + var(--menu-item-width) + var(--menu-item-clearance)
       );
       --menu-window-max-width: calc(1302px * var(--menu-window-scale));
-      --menu-window-max-height: calc(726px * var(--menu-window-scale));
       --menu-window-width: var(--menu-window-max-width);
+      /*
+       * A ceiling rather than a design size: the panels hold roughly 700px of
+       * content, so a window much taller than this is mostly empty. It was
+       * 690px, which left 530px of dead page on a 1440px screen.
+       */
+      --menu-window-max-height: 900px;
+      /* the room between the title and the footer */
+      --menu-window-band: calc(
+        100vh - var(--menu-window-top-min) - var(--page-margin) -
+          var(--desktop-footer-band)
+      );
       --menu-window-height: clamp(
         380px,
-        calc(
-          100vh - var(--menu-window-top) - var(--page-margin) -
-            var(--desktop-footer-band)
-        ),
+        var(--menu-window-band),
         var(--menu-window-max-height)
+      );
+      /*
+       * Once the window stops growing, split what is left over instead of
+       * pinning the window to the top and pooling all of it underneath.
+       */
+      --menu-window-top: calc(
+        var(--menu-window-top-min) +
+          max(0px, (var(--menu-window-band) - var(--menu-window-height)) / 2)
       );
     }
   }
@@ -249,7 +264,7 @@
 
   @media (min-width: 901px) and (max-height: 850px) {
     .widget[data-widget-id="menu-window"] {
-      --menu-window-top: var(--page-margin);
+      --menu-window-top-min: var(--page-margin);
       --menu-window-reserve: var(--menu-title-clearance);
     }
   }

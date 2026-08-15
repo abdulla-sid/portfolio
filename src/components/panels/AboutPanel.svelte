@@ -113,16 +113,20 @@
     }
   }
 
-  @media (max-width: 1259px) and (max-height: 850px) {
-    .deck {
-      display: none;
-    }
-  }
-
   @media (max-width: 900px) {
     .photo {
       width: 96px;
       margin: 2px 16px 12px 0;
+    }
+
+    /*
+     * The docked player takes over here. Hiding on width alone is what keeps
+     * exactly one of the two on screen: the old rule also required a short
+     * viewport, so a tall phone or a portrait tablet showed the deck and the
+     * dock at once, and a short wide laptop showed neither.
+     */
+    .deck {
+      display: none;
     }
   }
 </style>
