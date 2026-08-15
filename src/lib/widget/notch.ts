@@ -20,10 +20,11 @@ export function notchedTab(steps: number, width: number): NotchedTab {
   const face = [`M${DIAGONAL_STROKE} 0`];
 
   for (let i = 1; i <= steps; i += 1) edge.push(`V${i} H${i}`);
-  for (let i = 1; i < steps; i += 1) face.push(`V${i} H${i + DIAGONAL_STROKE}`);
+  for (let i = 1; i <= steps - DIAGONAL_STROKE; i += 1)
+    face.push(`V${i} H${i + DIAGONAL_STROKE}`);
 
   edge.push(`H${width} V0 Z`);
-  face.push(`H${width - 1} V0 Z`);
+  face.push(`H${width - DIAGONAL_STROKE} V0 Z`);
 
   return {
     viewBox: `0 0 ${width} ${steps}`,

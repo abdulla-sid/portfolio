@@ -11,13 +11,13 @@ describe("notchedTab", () => {
     }
   });
 
-  it("steps once per unit of height and strokes the diagonal twice as wide", () => {
+  it("insets the face so every side of the rim carries the same weight", () => {
     expect(notchedTab(3, 10)).toEqual({
       viewBox: "0 0 10 3",
       width: 10,
       height: 3,
       edge: "M0 0 V1 H1 V2 H2 V3 H3 H10 V0 Z",
-      face: "M2 0 V1 H3 V2 H4 H9 V0 Z",
+      face: "M2 0 V1 H3 H8 V0 Z",
     });
   });
 });

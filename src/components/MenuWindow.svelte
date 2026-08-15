@@ -12,11 +12,8 @@
 
   interface Props {
     id: MenuId;
-
     onOpened?: () => void;
-
     onClosing?: () => void;
-
     onClosed: () => void;
   }
 
@@ -28,9 +25,9 @@
     line: { collapseY: 0.011, whiten: 1 },
   } as const;
 
-  const CLOSE_TAB = notchedTab(15, 54);
+  const CLOSE_TAB = notchedTab(12, 50);
   const CLOSE_TAB_SCALE = 1.8;
-  const CLOSE_TAB_MOBILE = notchedTab(24, 94);
+  const CLOSE_TAB_MOBILE = notchedTab(16, 84);
 
   const reduceMotion = prefersReducedMotion();
   let win = $state<WindowState>({ phase: "closed", frame: null });
@@ -253,14 +250,8 @@
     background: transparent;
   }
 
-  /*
-   * These two panels lay themselves out to a fixed height rather than scroll,
-   * so anything that did not fit used to be unreachable — 63px of a project
-   * went missing on a 1366x600 laptop. Scrolling only engages once the content
-   * genuinely overflows, so the fixed layout is untouched wherever it still fits.
-   */
   .panel-body {
-    overflow-y: auto;
+    overflow: clip auto;
     display: flex;
     flex-direction: column;
   }
@@ -280,6 +271,12 @@
     font-size: var(--panel-label, 9px);
     letter-spacing: 1px;
     cursor: pointer;
+  }
+
+  .close::before {
+    content: "";
+    position: absolute;
+    inset: -4px -6px;
   }
 
   .tab {
@@ -306,7 +303,8 @@
     position: relative;
     align-self: center;
     justify-self: end;
-    padding-right: 13.5px;
+    padding-right: 9px;
+    font-size: 7px;
   }
 
   .close:focus-visible {
@@ -350,7 +348,7 @@
     }
 
     .close span {
-      padding-right: 13px;
+      padding-right: 9px;
     }
 
     .tab.desktop {
