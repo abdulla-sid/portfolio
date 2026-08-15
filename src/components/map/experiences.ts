@@ -34,7 +34,7 @@ export const EXPERIENCES: Experience[] = [
       "Analyzed memory system structures and performed efficiency analysis of prefetching-replacement strategies for data-intensive workloads.",
     ],
     city: "islamabad",
-    location: { lng: 72.9893, lat: 33.6428 },
+    location: { lng: 72.9979, lat: 33.6461 },
   },
   {
     id: "nust",
