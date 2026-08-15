@@ -410,6 +410,22 @@
     cursor: pointer;
   }
 
+  /*
+   * Both sit at 6px, so the link is 78x6 and the toggle 18x6 — a few pixels of
+   * target on a touch screen. Grow the hit areas, leave the type where it is.
+   */
+  .attribution a,
+  .attribution button {
+    position: relative;
+  }
+
+  .attribution a::before,
+  .attribution button::before {
+    content: "";
+    position: absolute;
+    inset: -12px -6px;
+  }
+
   .attribution button:focus-visible {
     outline: 1px solid currentColor;
     outline-offset: 2px;

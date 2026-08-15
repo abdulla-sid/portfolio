@@ -505,7 +505,9 @@
     cursor: default;
   }
 
-  @media (max-height: 750px) {
+  /* 740px is where Projects and Experience compact too; this used to say 750
+     and react ten pixels out of step with them for no reason. */
+  @media (max-height: 740px) {
     .caption {
       display: none;
     }

@@ -659,7 +659,13 @@
 
   @media (max-width: 900px) {
     .dave-widget {
-      --dave-scale: 1.8px;
+      /*
+       * The dais is DAIS_W (220) units across, so a flat 1.8px made it 396px
+       * and it ran off both edges of any phone narrower than about 410px —
+       * 38px each side on a 320px screen. Hold 1.8px wherever it fits and
+       * scale down to the viewport below that, leaving an 8px margin.
+       */
+      --dave-scale: min(1.8px, calc((100vw - 16px) / 220));
       right: auto;
       left: 50%;
       top: 50%;

@@ -140,6 +140,9 @@
     margin-top: 14px;
     padding-right: 8px;
     overflow-y: auto;
+    /* "plan→implement→review" is one unbreakable token 182px wide, and the
+       column is 155px at 1180x820 — without this it scrolls sideways instead */
+    overflow-wrap: break-word;
     font-size: 9px;
     line-height: 1.8;
     scrollbar-color: var(--ui-accent) transparent;
