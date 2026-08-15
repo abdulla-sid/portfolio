@@ -6,9 +6,12 @@
 
 <style>
   #title {
+    --brace-scale: 1.5;
+    --brace-bearing: calc(var(--brace-scale) * 0.25em);
+
     position: absolute;
     top: var(--page-margin);
-    left: var(--page-margin);
+    left: calc(var(--page-margin) - var(--brace-bearing));
     font-size: clamp(16px, 2.5vw, 22px);
     font-weight: 400;
     letter-spacing: 1px;
@@ -16,7 +19,7 @@
   }
 
   .brace {
-    font-size: 1.5em;
+    font-size: calc(var(--brace-scale) * 1em);
     vertical-align: -0.12em;
   }
 
