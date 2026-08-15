@@ -26,6 +26,21 @@
     color: var(--ui-accent);
     text-decoration: none;
   }
+
+  /*
+   * The labels set at 8px on a phone, which leaves a tap target far under the
+   * 24px floor. Grow the hit area without moving the text, the same way the
+   * window's close tab does.
+   */
+  a {
+    position: relative;
+  }
+
+  a::before {
+    content: "";
+    position: absolute;
+    inset: -14px -10px;
+  }
   @media (hover: hover) and (pointer: fine) {
     a:hover {
       color: var(--ui-highlight);

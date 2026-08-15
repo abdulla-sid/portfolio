@@ -480,6 +480,17 @@
       font-size: 9px;
     }
 
+    /*
+     * The message row is a 1fr track on desktop so the textarea fills the
+     * panel. On a phone the textarea carries a 96px floor instead, which a
+     * shrinking track cannot honour — it overflowed its own row and covered
+     * the send button. The panel body scrolls here, so let the rows size to
+     * their content and flow instead.
+     */
+    form {
+      grid-template-rows: auto auto auto auto;
+    }
+
     .pair {
       grid-template-columns: minmax(0, 1fr);
     }
