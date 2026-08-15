@@ -8,11 +8,12 @@ export const mapJumpTo = vi.fn();
 export const mapRemove = vi.fn();
 
 export const mapInit = { throwOnConstruct: false };
-export const mapView = { zoom: 0 };
+export const mapView = { zoom: 0, minZoom: 0 };
 export const markerElements: HTMLElement[] = [];
 
 interface CameraOptions {
   zoom?: number;
+  minZoom?: number;
 }
 
 export function createMapLibreMock() {
@@ -35,6 +36,7 @@ export function createMapLibreMock() {
     constructor(options?: CameraOptions) {
       if (mapInit.throwOnConstruct) throw new Error("no webgl");
       if (options?.zoom !== undefined) mapView.zoom = options.zoom;
+      if (options?.minZoom !== undefined) mapView.minZoom = options.minZoom;
     }
     on() {
       return this;
@@ -60,6 +62,7 @@ export function createMapLibreMock() {
       return mapJumpTo(options);
     };
     getZoom = () => mapView.zoom;
+    getMinZoom = () => mapView.minZoom;
     setStyle = mapSetStyle;
     setMaxBounds = mapSetMaxBounds;
     remove = mapRemove;

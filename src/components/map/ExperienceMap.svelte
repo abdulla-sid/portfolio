@@ -38,12 +38,12 @@
   const ATTRIBUTION_COLLAPSE_MS = 5000;
   const SVG_NS = "http://www.w3.org/2000/svg";
 
-  const FOCUS_ZOOM = 13;
-  const FOCUS_PULLBACK_ZOOM = 11.9;
+  const FOCUS_ZOOM = 11.5;
+  const FOCUS_FLY_SPEED = 0.65;
+  const FOCUS_PULLBACK_DROP = 1.1;
   const FOCUS_PULLBACK_MIN_DROP = 0.4;
   const FOCUS_OUT_MS = 620;
   const FOCUS_IN_MS = 540;
-  const SWAP_REVEAL_ZOOM = 11.5;
   const reduceMotion = prefersReducedMotion();
 
   let failed = $state(false);
@@ -55,6 +55,7 @@
   let map: maplibregl.Map | null = null;
   let mapPalette: MapPalette | null = null;
   let shownCity: CityId = INITIAL_CITY;
+  let settledOnPin = false;
   let transitionGeneration = 0;
   let destroyed = false;
   const transitionCancels = new Set<() => void>();
@@ -165,6 +166,7 @@
       cancelTransitionWaits();
       covering = false;
       pinsHidden = false;
+      settledOnPin = false;
       map?.remove();
       map = null;
       mapPalette = null;
@@ -291,8 +293,9 @@
 
       activeMap.jumpTo({
         center: [target.lng, target.lat],
-        zoom: SWAP_REVEAL_ZOOM,
+        zoom: FOCUS_ZOOM,
       });
+      settledOnPin = true;
       if (!(await mapIdle(TILE_IDLE_TIMEOUT_MS, run))) return;
       if (grid) {
         if (!(await runDissolve(grid, true, run))) return;
@@ -308,10 +311,14 @@
 
   async function bounceTo(target: MapFocus, run: number) {
     const from = map?.getZoom() ?? 0;
-    if (from - FOCUS_PULLBACK_ZOOM >= FOCUS_PULLBACK_MIN_DROP) {
+    const pullback = Math.max(
+      from - FOCUS_PULLBACK_DROP,
+      map?.getMinZoom() ?? 0,
+    );
+    if (from - pullback >= FOCUS_PULLBACK_MIN_DROP) {
       pinsHidden = true;
       map?.easeTo({
-        zoom: FOCUS_PULLBACK_ZOOM,
+        zoom: pullback,
         duration: FOCUS_OUT_MS,
         easing: easeOutCubic,
       });
@@ -335,11 +342,20 @@
     pinsHidden = false;
     if (target.city !== shownCity) {
       void swapCity(target, run);
-    } else if (reduceMotion) {
-      map.jumpTo({ center: [target.lng, target.lat], zoom: FOCUS_ZOOM });
-    } else {
-      void bounceTo(target, run);
+      return;
     }
+    if (reduceMotion) {
+      map.jumpTo({ center: [target.lng, target.lat], zoom: FOCUS_ZOOM });
+    } else if (settledOnPin) {
+      void bounceTo(target, run);
+    } else {
+      map.flyTo({
+        center: [target.lng, target.lat],
+        zoom: FOCUS_ZOOM,
+        speed: FOCUS_FLY_SPEED,
+      });
+    }
+    settledOnPin = true;
   }
 
   $effect(() => {

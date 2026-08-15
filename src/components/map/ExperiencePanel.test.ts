@@ -9,7 +9,7 @@ vi.mock("pmtiles", async () =>
   (await import("../../test/mocks/maplibre")).createPMTilesMock(),
 );
 
-import { mapEaseTo, resetMapLibreMock } from "../../test/mocks/maplibre";
+import { mapFlyTo, resetMapLibreMock } from "../../test/mocks/maplibre";
 import ExperiencePanel from "./ExperiencePanel.svelte";
 
 afterEach(resetMapLibreMock);
@@ -21,7 +21,7 @@ describe("ExperiencePanel", () => {
 
     const newest = EXPERIENCES[0].location;
     await waitFor(() =>
-      expect(mapEaseTo).toHaveBeenCalledWith(
+      expect(mapFlyTo).toHaveBeenCalledWith(
         expect.objectContaining({ center: [newest.lng, newest.lat] }),
       ),
     );

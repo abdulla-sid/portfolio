@@ -11,6 +11,7 @@ vi.mock("pmtiles", async () =>
 
 import {
   mapEaseTo,
+  mapFlyTo,
   mapInit,
   mapJumpTo,
   mapRemove,
@@ -56,7 +57,7 @@ describe("ExperienceMap", () => {
     expect(getByRole("link", { name: "OpenStreetMap" })).toBeInTheDocument();
   });
 
-  it("eases straight in from the opening zoom, and swaps tiles, bounds, and viewpoint across cities", async () => {
+  it("flies in from the opening zoom, and swaps tiles, bounds, and viewpoint across cities", async () => {
     vi.useFakeTimers();
     const { rerender } = render(ExperienceMap, {
       focus: null,
@@ -69,10 +70,12 @@ describe("ExperienceMap", () => {
     });
     await vi.runAllTimersAsync();
 
-    expect(mapEaseTo).toHaveBeenCalledTimes(1);
-    expect(mapEaseTo).toHaveBeenCalledWith(
-      expect.objectContaining({ center: [74.4, 31.5], zoom: 13 }),
+    expect(mapFlyTo).toHaveBeenCalledTimes(1);
+    expect(mapFlyTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [74.4, 31.5], zoom: 11.5 }),
     );
+    expect(mapFlyTo.mock.calls[0][0]).not.toHaveProperty("duration");
+    expect(mapEaseTo).not.toHaveBeenCalled();
     expect(mapSetStyle).not.toHaveBeenCalled();
     vi.useRealTimers();
 
@@ -108,7 +111,7 @@ describe("ExperienceMap", () => {
     );
   });
 
-  it("pulls back before settling once the map is already zoomed in", async () => {
+  it("pulls back out, then dives in, when stepping between pins in one city", async () => {
     vi.useFakeTimers();
     const { rerender } = render(ExperienceMap, {
       focus: null,
@@ -119,7 +122,7 @@ describe("ExperienceMap", () => {
       selectedId: "carbonteq",
     });
     await vi.runAllTimersAsync();
-    expect(mapView.zoom).toBe(13);
+    expect(mapView.zoom).toBe(11.5);
 
     resetMapLibreMock();
     await rerender({
@@ -128,17 +131,50 @@ describe("ExperienceMap", () => {
     });
 
     expect(mapEaseTo.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ zoom: 11.9 }),
+      expect.objectContaining({ zoom: 10.4 }),
     );
     expect(mapEaseTo.mock.calls[0][0]).not.toHaveProperty("center");
 
     await vi.runAllTimersAsync();
     expect(mapEaseTo).toHaveBeenLastCalledWith(
-      expect.objectContaining({ center: [74.423, 31.4683], zoom: 13 }),
+      expect.objectContaining({ center: [74.423, 31.4683], zoom: 11.5 }),
     );
   });
 
-  it("skips the pull-back when the visitor has already zoomed near it", async () => {
+  it("still bounces on the first pin after a city swap left the camera pulled back", async () => {
+    vi.useFakeTimers();
+    const { rerender } = render(ExperienceMap, {
+      focus: { lng: 74.423, lat: 31.4683, city: "lahore" },
+      selectedId: "carbonteq",
+    });
+    await vi.runAllTimersAsync();
+
+    await rerender({
+      focus: { lng: 72.9979, lat: 33.6461, city: "islamabad" },
+      selectedId: "chip-design-center",
+    });
+    await vi.runAllTimersAsync();
+    expect(mapView.zoom).toBe(11.5);
+
+    resetMapLibreMock();
+    await rerender({
+      focus: { lng: 72.9918, lat: 33.6448, city: "islamabad" },
+      selectedId: "nust",
+    });
+
+    expect(mapEaseTo.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ zoom: 10.4 }),
+    );
+    expect(mapEaseTo.mock.calls[0][0]).not.toHaveProperty("center");
+
+    await vi.runAllTimersAsync();
+    expect(mapEaseTo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ center: [72.9918, 33.6448], zoom: 11.5 }),
+    );
+    expect(mapFlyTo).not.toHaveBeenCalled();
+  });
+
+  it("never pulls back past the map's own zoom floor", async () => {
     vi.useFakeTimers();
     const { rerender } = render(ExperienceMap, {
       focus: { lng: 74.4, lat: 31.5, city: "lahore" },
@@ -147,7 +183,7 @@ describe("ExperienceMap", () => {
     await vi.runAllTimersAsync();
 
     resetMapLibreMock();
-    mapView.zoom = 12;
+    mapView.zoom = 10;
     await rerender({
       focus: { lng: 74.423, lat: 31.4683, city: "lahore" },
       selectedId: "carbonteq",
@@ -156,7 +192,7 @@ describe("ExperienceMap", () => {
 
     expect(mapEaseTo).toHaveBeenCalledTimes(1);
     expect(mapEaseTo).toHaveBeenCalledWith(
-      expect.objectContaining({ center: [74.423, 31.4683], zoom: 13 }),
+      expect.objectContaining({ center: [74.423, 31.4683], zoom: 11.5 }),
     );
   });
 
@@ -206,7 +242,7 @@ describe("ExperienceMap", () => {
     await vi.runAllTimersAsync();
 
     expect(mapSetStyle).not.toHaveBeenCalled();
-    expect(mapEaseTo).toHaveBeenLastCalledWith(
+    expect(mapFlyTo).toHaveBeenLastCalledWith(
       expect.objectContaining({ center: [74.4, 31.5] }),
     );
   });
