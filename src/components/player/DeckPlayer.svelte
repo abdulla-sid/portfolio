@@ -381,6 +381,12 @@
     cursor: pointer;
   }
 
+  .seek::before {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+
   .trough,
   .fill {
     position: absolute;
@@ -420,22 +426,17 @@
     background: var(--ui-accent);
   }
 
-  /*
-   * The margins land 22px of clearance on both sides of the row, against the
-   * chassis gap of 14px above it and padding of 16px below. That holds the
-   * chassis to the sticky note's 192px, which the About panel aligns with.
-   */
   .bar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     column-gap: 10px;
-    row-gap: 14px;
     margin-block: 8px 6px;
   }
 
   .transport {
     display: flex;
+    flex: none;
     align-items: center;
     gap: 8px;
   }
@@ -470,49 +471,38 @@
     fill: var(--ui-ink);
   }
 
-  /*
-   * The preset row sizes itself off the chassis rather than the viewport: the
-   * deck is as narrow as 294px on a tall phone and as wide as 724px on a
-   * tablet, and those do not track viewport width in the same order. Sizes step
-   * on whole pixels so the buttons stay on the pixel grid at every width.
-   */
   .presets {
     --preset-size: 36px;
     --preset-gap: 6px;
     list-style: none;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: var(--preset-gap);
     margin-inline-start: auto;
   }
 
-  /*
-   * A container query resolves against the chassis content box, so these
-   * compare against the space the buttons actually get, not the padded width.
-   * Eight buttons need 8 x size + 7 x gap: 330, 266, 220, 188. Each threshold
-   * is the requirement of the tier it hands over to, plus 3px — a tier stays
-   * active just above its own breakpoint, and a container is not always an
-   * integer width under browser zoom or fractional device pixel ratios.
-   */
-  @container deck-chassis (max-width: 333px) {
+  @container deck-chassis (max-width: 384px) {
     .presets {
       --preset-size: 28px;
-    }
-  }
-
-  @container deck-chassis (max-width: 269px) {
-    .presets {
-      --preset-size: 24px;
       --preset-gap: 4px;
     }
   }
 
-  @container deck-chassis (max-width: 223px) {
+  @container deck-chassis (max-width: 326px) {
     .presets {
       --preset-size: 20px;
     }
   }
 
+  @container deck-chassis (max-width: 278px) {
+    .presets {
+      --preset-size: 16px;
+    }
+  }
+
   .preset {
+    position: relative;
     width: var(--preset-size);
     height: var(--preset-size);
     border: 0;
@@ -522,6 +512,12 @@
     background: none;
     box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
     cursor: pointer;
+  }
+
+  .preset::before {
+    content: "";
+    position: absolute;
+    inset: -4px -2px;
   }
 
   .preset.on {
@@ -534,8 +530,6 @@
     cursor: default;
   }
 
-  /* 740px is where Projects and Experience compact too; this used to say 750
-     and react ten pixels out of step with them for no reason. */
   @media (max-height: 740px) {
     .caption {
       display: none;

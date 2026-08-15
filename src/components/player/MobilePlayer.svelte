@@ -191,6 +191,8 @@
       margin: 0;
       padding: 8px;
       overflow: auto;
+      scrollbar-color: var(--ui-accent) transparent;
+      scrollbar-width: thin;
       list-style: none;
       border: 2px solid var(--ui-accent-deep);
       background: var(--player-screen);
