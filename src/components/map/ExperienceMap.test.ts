@@ -10,14 +10,17 @@ vi.mock("pmtiles", async () =>
 );
 
 import {
-  mapFlyTo,
+  mapEaseTo,
   mapInit,
   mapJumpTo,
   mapRemove,
   mapSetMaxBounds,
   mapSetStyle,
+  mapView,
+  markerElements,
   resetMapLibreMock,
 } from "../../test/mocks/maplibre";
+import { EXPERIENCES } from "./experiences";
 import ExperienceMap from "./ExperienceMap.svelte";
 
 afterEach(() => {
@@ -53,7 +56,8 @@ describe("ExperienceMap", () => {
     expect(getByRole("link", { name: "OpenStreetMap" })).toBeInTheDocument();
   });
 
-  it("flies within a city and swaps tiles, bounds, and viewpoint across cities", async () => {
+  it("eases straight in from the opening zoom, and swaps tiles, bounds, and viewpoint across cities", async () => {
+    vi.useFakeTimers();
     const { rerender } = render(ExperienceMap, {
       focus: null,
       selectedId: null,
@@ -63,10 +67,14 @@ describe("ExperienceMap", () => {
       focus: { lng: 74.4, lat: 31.5, city: "lahore" },
       selectedId: "carbonteq",
     });
-    expect(mapFlyTo).toHaveBeenCalledWith(
-      expect.objectContaining({ center: [74.4, 31.5] }),
+    await vi.runAllTimersAsync();
+
+    expect(mapEaseTo).toHaveBeenCalledTimes(1);
+    expect(mapEaseTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [74.4, 31.5], zoom: 13 }),
     );
     expect(mapSetStyle).not.toHaveBeenCalled();
+    vi.useRealTimers();
 
     resetMapLibreMock();
     await rerender({
@@ -87,7 +95,7 @@ describe("ExperienceMap", () => {
       center: [72.9918, 33.6448],
       zoom: 11.5,
     });
-    expect(mapFlyTo).not.toHaveBeenCalled();
+    expect(mapEaseTo).not.toHaveBeenCalled();
 
     resetMapLibreMock();
     await rerender({
@@ -97,6 +105,73 @@ describe("ExperienceMap", () => {
     await vi.waitFor(() => expect(mapSetStyle).toHaveBeenCalled());
     expect(JSON.stringify(mapSetStyle.mock.calls[0])).toContain(
       "lahore.pmtiles",
+    );
+  });
+
+  it("pulls back before settling once the map is already zoomed in", async () => {
+    vi.useFakeTimers();
+    const { rerender } = render(ExperienceMap, {
+      focus: null,
+      selectedId: null,
+    });
+    await rerender({
+      focus: { lng: 74.4, lat: 31.5, city: "lahore" },
+      selectedId: "carbonteq",
+    });
+    await vi.runAllTimersAsync();
+    expect(mapView.zoom).toBe(13);
+
+    resetMapLibreMock();
+    await rerender({
+      focus: { lng: 74.423, lat: 31.4683, city: "lahore" },
+      selectedId: "carbonteq",
+    });
+
+    expect(mapEaseTo.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ zoom: 11.9 }),
+    );
+    expect(mapEaseTo.mock.calls[0][0]).not.toHaveProperty("center");
+
+    await vi.runAllTimersAsync();
+    expect(mapEaseTo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ center: [74.423, 31.4683], zoom: 13 }),
+    );
+  });
+
+  it("skips the pull-back when the visitor has already zoomed near it", async () => {
+    vi.useFakeTimers();
+    const { rerender } = render(ExperienceMap, {
+      focus: { lng: 74.4, lat: 31.5, city: "lahore" },
+      selectedId: "carbonteq",
+    });
+    await vi.runAllTimersAsync();
+
+    resetMapLibreMock();
+    mapView.zoom = 12;
+    await rerender({
+      focus: { lng: 74.423, lat: 31.4683, city: "lahore" },
+      selectedId: "carbonteq",
+    });
+    await vi.runAllTimersAsync();
+
+    expect(mapEaseTo).toHaveBeenCalledTimes(1);
+    expect(mapEaseTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [74.423, 31.4683], zoom: 13 }),
+    );
+  });
+
+  it("marks only the selected experience, so exactly one ring is drawn", () => {
+    render(ExperienceMap, {
+      focus: { lng: 74.4, lat: 31.5, city: "lahore" },
+      selectedId: "carbonteq",
+    });
+
+    const pins = markerElements.filter((el) =>
+      el.classList.contains("map-pin"),
+    );
+    expect(pins).toHaveLength(EXPERIENCES.length);
+    expect(pins.filter((el) => el.classList.contains("selected"))).toHaveLength(
+      1,
     );
   });
 
@@ -131,7 +206,7 @@ describe("ExperienceMap", () => {
     await vi.runAllTimersAsync();
 
     expect(mapSetStyle).not.toHaveBeenCalled();
-    expect(mapFlyTo).toHaveBeenLastCalledWith(
+    expect(mapEaseTo).toHaveBeenLastCalledWith(
       expect.objectContaining({ center: [74.4, 31.5] }),
     );
   });

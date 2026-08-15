@@ -113,6 +113,7 @@
 
   --map-background: var(--surface-page);
   --map-road: var(--ui-accent);
+  --map-pin: var(--ui-highlight);
 
   --dave-callout-fill: var(--player-screen);
   --dave-callout-scanline: var(--player-scanline);

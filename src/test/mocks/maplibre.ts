@@ -1,15 +1,25 @@
 import { vi } from "vitest";
 
 export const mapFlyTo = vi.fn();
+export const mapEaseTo = vi.fn();
 export const mapSetStyle = vi.fn();
 export const mapSetMaxBounds = vi.fn();
 export const mapJumpTo = vi.fn();
 export const mapRemove = vi.fn();
 
 export const mapInit = { throwOnConstruct: false };
+export const mapView = { zoom: 0 };
+export const markerElements: HTMLElement[] = [];
+
+interface CameraOptions {
+  zoom?: number;
+}
 
 export function createMapLibreMock() {
   class Marker {
+    constructor(options?: { element?: HTMLElement }) {
+      if (options?.element) markerElements.push(options.element);
+    }
     setLngLat() {
       return this;
     }
@@ -22,8 +32,9 @@ export function createMapLibreMock() {
   class Map {
     touchZoomRotate = { disableRotation() {} };
     keyboard = { disable() {} };
-    constructor() {
+    constructor(options?: CameraOptions) {
       if (mapInit.throwOnConstruct) throw new Error("no webgl");
+      if (options?.zoom !== undefined) mapView.zoom = options.zoom;
     }
     on() {
       return this;
@@ -36,10 +47,21 @@ export function createMapLibreMock() {
       return this;
     }
     setPixelRatio() {}
-    flyTo = mapFlyTo;
+    flyTo = (options?: CameraOptions) => {
+      if (options?.zoom !== undefined) mapView.zoom = options.zoom;
+      return mapFlyTo(options);
+    };
+    easeTo = (options?: CameraOptions) => {
+      if (options?.zoom !== undefined) mapView.zoom = options.zoom;
+      return mapEaseTo(options);
+    };
+    jumpTo = (options?: CameraOptions) => {
+      if (options?.zoom !== undefined) mapView.zoom = options.zoom;
+      return mapJumpTo(options);
+    };
+    getZoom = () => mapView.zoom;
     setStyle = mapSetStyle;
     setMaxBounds = mapSetMaxBounds;
-    jumpTo = mapJumpTo;
     remove = mapRemove;
   }
 
@@ -57,9 +79,11 @@ export function createPMTilesMock() {
 
 export function resetMapLibreMock() {
   mapFlyTo.mockClear();
+  mapEaseTo.mockClear();
   mapSetStyle.mockClear();
   mapSetMaxBounds.mockClear();
   mapJumpTo.mockClear();
   mapRemove.mockClear();
+  markerElements.length = 0;
   mapInit.throwOnConstruct = false;
 }

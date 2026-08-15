@@ -12,7 +12,14 @@
   import { EXPERIENCES } from "./experiences";
   import { LABELS } from "./labels";
   import { cellOrder, coverCounts } from "./dissolve";
+  import {
+    MARKER_HEIGHT_PX,
+    MARKER_PATH,
+    MARKER_VIEWBOX,
+    MARKER_WIDTH_PX,
+  } from "./marker";
   import { prefersReducedMotion } from "../../lib/motion";
+  import { untrack } from "svelte";
 
   interface Props {
     focus?: MapFocus | null;
@@ -29,8 +36,13 @@
   const DISSOLVE_STEP_MS = 45;
   const TILE_IDLE_TIMEOUT_MS = 2000;
   const ATTRIBUTION_COLLAPSE_MS = 5000;
+  const SVG_NS = "http://www.w3.org/2000/svg";
 
   const FOCUS_ZOOM = 13;
+  const FOCUS_PULLBACK_ZOOM = 11.9;
+  const FOCUS_PULLBACK_MIN_DROP = 0.4;
+  const FOCUS_OUT_MS = 620;
+  const FOCUS_IN_MS = 540;
   const SWAP_REVEAL_ZOOM = 11.5;
   const reduceMotion = prefersReducedMotion();
 
@@ -38,6 +50,7 @@
   let mapEl = $state<HTMLDivElement>();
   let overlayEl = $state<HTMLCanvasElement>();
   let covering = $state(false);
+  let pinsHidden = $state(false);
   let attributionExpanded = $state(true);
   let map: maplibregl.Map | null = null;
   let mapPalette: MapPalette | null = null;
@@ -59,11 +72,29 @@
     ];
   }
 
-  function markerEl(className: string, text: string, id?: string): HTMLElement {
+  function markerEl(className: string, text: string): HTMLElement {
     const el = document.createElement("div");
     el.className = className;
     el.textContent = text;
-    if (id) el.dataset.id = id;
+    return el;
+  }
+
+  function pinEl(): HTMLElement {
+    const el = document.createElement("div");
+    el.className = "map-pin";
+
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", MARKER_VIEWBOX);
+    svg.setAttribute("width", String(MARKER_WIDTH_PX));
+    svg.setAttribute("height", String(MARKER_HEIGHT_PX));
+    svg.setAttribute("shape-rendering", "crispEdges");
+    svg.setAttribute("aria-hidden", "true");
+
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", MARKER_PATH);
+
+    svg.append(path);
+    el.append(svg);
     return el;
   }
 
@@ -115,8 +146,10 @@
           .setLngLat([l.location.lng, l.location.lat])
           .addTo(map);
       }
+      const shownId = untrack(() => selectedId);
       for (const e of EXPERIENCES) {
-        const el = markerEl("map-pin", "", e.id);
+        const el = pinEl();
+        el.classList.toggle("selected", e.id === shownId);
         pinById.set(e.id, el);
         new maplibregl.Marker({ element: el })
           .setLngLat([e.location.lng, e.location.lat])
@@ -131,6 +164,7 @@
       transitionGeneration += 1;
       cancelTransitionWaits();
       covering = false;
+      pinsHidden = false;
       map?.remove();
       map = null;
       mapPalette = null;
@@ -268,18 +302,43 @@
     }
   }
 
+  const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+  const easeInOutCubic = (t: number) =>
+    t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+
+  async function bounceTo(target: MapFocus, run: number) {
+    const from = map?.getZoom() ?? 0;
+    if (from - FOCUS_PULLBACK_ZOOM >= FOCUS_PULLBACK_MIN_DROP) {
+      pinsHidden = true;
+      map?.easeTo({
+        zoom: FOCUS_PULLBACK_ZOOM,
+        duration: FOCUS_OUT_MS,
+        easing: easeOutCubic,
+      });
+      if (!(await wait(FOCUS_OUT_MS, run))) return;
+      pinsHidden = false;
+    }
+    map?.easeTo({
+      center: [target.lng, target.lat],
+      zoom: FOCUS_ZOOM,
+      duration: FOCUS_IN_MS,
+      easing: easeInOutCubic,
+    });
+  }
+
   function applyFocus(target: MapFocus) {
     if (!map) return;
     transitionGeneration += 1;
     const run = transitionGeneration;
     cancelTransitionWaits();
     covering = false;
+    pinsHidden = false;
     if (target.city !== shownCity) {
       void swapCity(target, run);
     } else if (reduceMotion) {
       map.jumpTo({ center: [target.lng, target.lat], zoom: FOCUS_ZOOM });
     } else {
-      map.flyTo({ center: [target.lng, target.lat], zoom: FOCUS_ZOOM });
+      void bounceTo(target, run);
     }
   }
 
@@ -297,7 +356,12 @@
   {#if failed}
     <p class="fallback">MAP UNAVAILABLE</p>
   {:else}
-    <div class="map" data-no-drag bind:this={mapEl}></div>
+    <div
+      class="map"
+      class:pins-hidden={pinsHidden}
+      data-no-drag
+      bind:this={mapEl}
+    ></div>
     <canvas class="dissolve" class:active={covering} bind:this={overlayEl}
     ></canvas>
     <div class="attribution" class:expanded={attributionExpanded}>
@@ -359,15 +423,22 @@
   }
 
   .map :global(.map-pin) {
-    width: 12px;
-    height: 12px;
-    background: var(--ui-accent);
-    border: 2px solid var(--ui-ink);
+    display: none;
+    line-height: 0;
     pointer-events: none;
   }
 
   .map :global(.map-pin.selected) {
-    background: var(--ui-highlight);
+    display: block;
+  }
+
+  .map.pins-hidden :global(.map-pin.selected) {
+    display: none;
+  }
+
+  .map :global(.map-pin svg) {
+    display: block;
+    fill: var(--map-pin);
   }
 
   .attribution {
