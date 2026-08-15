@@ -129,70 +129,80 @@
       </button>
     </div>
 
-    <div class="transport">
-      <button
-        class="btn"
-        data-no-drag
-        aria-label="Previous track"
-        onclick={() => deck.step(-1)}
-      >
-        <svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">
-          <path d="M0 0H2V8H0Z M8 0V8H7V7H6V6H5V5H4V3H5V2H6V1H7V0Z" />
-        </svg>
-      </button>
-      <button
-        class="btn big"
-        data-no-drag
-        aria-label={deck.playing ? "Pause" : "Play"}
-        onclick={deck.togglePlay}
-      >
-        {#if deck.playing}
+    <div class="bar">
+      <div class="transport">
+        <button
+          class="btn"
+          data-no-drag
+          aria-label="Previous track"
+          onclick={() => deck.step(-1)}
+        >
           <svg
             viewBox="0 0 8 8"
             shape-rendering="crispEdges"
             aria-hidden="true"
           >
-            <path d="M1 0H3V8H1Z M5 0H7V8H5Z" />
+            <path d="M0 0H2V8H0Z M8 0V8H7V7H6V6H5V5H4V3H5V2H6V1H7V0Z" />
           </svg>
-        {:else}
+        </button>
+        <button
+          class="btn big"
+          data-no-drag
+          aria-label={deck.playing ? "Pause" : "Play"}
+          onclick={deck.togglePlay}
+        >
+          {#if deck.playing}
+            <svg
+              viewBox="0 0 8 8"
+              shape-rendering="crispEdges"
+              aria-hidden="true"
+            >
+              <path d="M1 0H3V8H1Z M5 0H7V8H5Z" />
+            </svg>
+          {:else}
+            <svg
+              viewBox="0 0 8 8"
+              shape-rendering="crispEdges"
+              aria-hidden="true"
+            >
+              <path d="M1 0H3V1H4V2H5V3H6V5H5V6H4V7H3V8H1Z" />
+            </svg>
+          {/if}
+        </button>
+        <button
+          class="btn"
+          data-no-drag
+          aria-label="Next track"
+          onclick={() => deck.step(1)}
+        >
           <svg
             viewBox="0 0 8 8"
             shape-rendering="crispEdges"
             aria-hidden="true"
           >
-            <path d="M1 0H3V1H4V2H5V3H6V5H5V6H4V7H3V8H1Z" />
+            <path d="M0 0V8H1V7H2V6H3V5H4V3H3V2H2V1H1V0Z M6 0H8V8H6Z" />
           </svg>
-        {/if}
-      </button>
-      <button
-        class="btn"
-        data-no-drag
-        aria-label="Next track"
-        onclick={() => deck.step(1)}
-      >
-        <svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">
-          <path d="M0 0V8H1V7H2V6H3V5H4V3H3V2H2V1H1V0Z M6 0H8V8H6Z" />
-        </svg>
-      </button>
-    </div>
+        </button>
+      </div>
 
-    <ul class="presets" aria-label="Tracks">
-      {#each presets as track, index (index)}
-        <li>
-          <button
-            class="preset"
-            class:on={index === deck.current}
-            data-no-drag
-            aria-current={index === deck.current ? "true" : undefined}
-            aria-label="Track {index + 1}"
-            disabled={!track.preview}
-            onclick={() => deck.selectTrack(index, true)}
-          >
-            {index + 1}
-          </button>
-        </li>
-      {/each}
-    </ul>
+      <ul class="presets" aria-label="Tracks">
+        {#each presets as track, index (index)}
+          <li>
+            <button
+              class="preset"
+              class:on={index === deck.current}
+              data-no-drag
+              aria-current={index === deck.current ? "true" : undefined}
+              aria-label="Track {index + 1}"
+              disabled={!track.preview}
+              onclick={() => deck.selectTrack(index, true)}
+            >
+              {index + 1}
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -218,8 +228,8 @@
 
   .screen {
     position: relative;
-    min-height: 68px;
-    padding: 14px 16px;
+    min-height: 60px;
+    padding: 10px 14px;
     background: var(--ui-ink);
     display: flex;
     align-items: center;
@@ -273,7 +283,7 @@
   }
 
   .vu {
-    flex: 0 0 232px;
+    flex: 0 0 156px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -281,7 +291,7 @@
 
   .vrow {
     position: relative;
-    height: 10px;
+    height: 8px;
   }
 
   .ghost,
@@ -302,7 +312,7 @@
   .lvl {
     color: var(--ui-accent);
     width: calc(var(--band-idle) * 16px);
-    animation: level var(--band-duration) steps(7, end) var(--band-delay)
+    animation: level var(--band-duration) steps(6, end) var(--band-delay)
       infinite alternate;
     animation-play-state: paused;
   }
@@ -320,7 +330,7 @@
       width: 32px;
     }
     to {
-      width: 176px;
+      width: 128px;
     }
   }
 
@@ -329,9 +339,9 @@
     top: 0;
     left: calc(var(--band-idle) * 16px);
     width: 4px;
-    height: 10px;
+    height: 8px;
     background: var(--ui-highlight);
-    animation: peak calc(var(--band-duration) * 3) steps(9, end)
+    animation: peak calc(var(--band-duration) * 3) steps(6, end)
       var(--band-delay) infinite alternate;
     animation-play-state: paused;
   }
@@ -345,7 +355,7 @@
       left: 48px;
     }
     to {
-      left: 192px;
+      left: 144px;
     }
   }
 
@@ -410,15 +420,29 @@
     background: var(--ui-accent);
   }
 
+  /*
+   * The margins land 22px of clearance on both sides of the row, against the
+   * chassis gap of 14px above it and padding of 16px below. That holds the
+   * chassis to the sticky note's 192px, which the About panel aligns with.
+   */
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 14px;
+    margin-block: 8px 6px;
+  }
+
   .transport {
     display: flex;
+    align-items: center;
     gap: 8px;
   }
 
   .btn {
-    width: 40px;
-    height: 40px;
-    padding: 9px;
+    width: 34px;
+    height: 34px;
     border: 0;
     background: none;
     box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
@@ -428,17 +452,21 @@
   }
 
   .btn svg {
-    width: 100%;
-    height: 100%;
+    width: 16px;
+    height: 16px;
     fill: var(--ui-accent);
   }
 
   .btn.big {
+    width: 44px;
+    height: 44px;
     background: var(--ui-accent);
     box-shadow: none;
   }
 
   .btn.big svg {
+    width: 24px;
+    height: 24px;
     fill: var(--ui-ink);
   }
 
@@ -454,6 +482,7 @@
     list-style: none;
     display: flex;
     gap: var(--preset-gap);
+    margin-inline-start: auto;
   }
 
   /*
