@@ -4,13 +4,9 @@
 
   interface Props {
     count: number;
-
     index: number;
-
     itemLabel: string;
-
     announcement: string;
-
     children: Snippet;
   }
 
@@ -92,7 +88,7 @@
   .paddle {
     position: relative;
     display: grid;
-    width: var(--paddle-width, 24px);
+    width: var(--paddle-width, 18px);
     height: var(--paddle-height, 116px);
     padding: 0;
     align-self: center;
@@ -104,24 +100,35 @@
     cursor: pointer;
   }
 
-  /*
-   * The drawn paddle is 24px wide, which is exactly the tap-target floor with
-   * nothing to spare. Reach into the gutter either side without moving it.
-   */
   .paddle::before {
     content: "";
     position: absolute;
-    inset: 0 -10px;
+    inset: 0;
+  }
+
+  .prev::before {
+    right: -6px;
+  }
+
+  .next::before {
+    left: -6px;
+  }
+
+  .prev,
+  .next {
+    grid-row: 1 / -2;
+    grid-column: 1 / -1;
+    align-self: center;
   }
 
   .prev {
-    grid-area: prev;
     justify-self: start;
+    margin-left: calc(-1 * var(--paddle-strip, 22px));
   }
 
   .next {
-    grid-area: next;
     justify-self: end;
+    margin-right: calc(-1 * var(--paddle-strip, 22px));
   }
 
   .paddle:disabled {
@@ -135,8 +142,8 @@
   }
 
   .paddle svg {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
     fill: none;
     stroke: currentColor;
     stroke-width: 2;
@@ -152,7 +159,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
-    margin: 0 var(--rail-inset, var(--paddle-width, 24px)) 6px;
+    margin: 0 var(--rail-inset, 0px) 6px;
     list-style: none;
   }
 

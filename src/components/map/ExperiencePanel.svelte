@@ -60,29 +60,23 @@
 <style>
   .split {
     --gutter: calc(10px * var(--hd-scale, 2));
-    --paddle-width: 24px;
+    --paddle-width: 18px;
     --paddle-height: 116px;
-    --edge-trim-left: var(--content-trim-left, 0px);
-    --edge-trim-right: var(--content-trim-right, 0px);
+    --paddle-strip: calc(var(--paddle-width) + var(--gutter));
     --map-share: 0.62;
     --map-scale: 0.9;
     display: grid;
     grid-template-areas:
-      "prev text map  next"
-      "rail rail rail rail";
+      "text map"
+      "rail rail";
     grid-template-columns:
-      calc(var(--paddle-width) + var(--edge-trim-left))
       minmax(0, 1fr)
       calc(
-        (
-            var(--map-share) *
-              (100% - var(--edge-trim-left) - var(--edge-trim-right)) - 2 *
-              var(--paddle-width) - 3 * var(--gutter)
-          ) *
+        (var(--map-share) * (100% - var(--gutter)) - 2 * var(--paddle-strip)) *
           var(--map-scale)
-      )
-      calc(var(--paddle-width) + var(--edge-trim-right));
+      );
     grid-template-rows: minmax(0, 1fr) auto;
+    padding-inline: var(--paddle-strip);
     gap: var(--gutter);
     height: 100%;
     min-height: 0;
@@ -95,6 +89,7 @@
     min-width: 0;
     min-height: 0;
     color: var(--text-primary);
+    overflow-wrap: break-word;
   }
 
   .heading {
@@ -104,20 +99,20 @@
   h2 {
     color: var(--ui-highlight);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--panel-heading);
     line-height: 1.6;
   }
 
   .org {
     margin-top: 6px;
     color: var(--ui-accent);
-    font-size: 10px;
+    font-size: var(--panel-sub);
     line-height: 1.6;
   }
 
   .dates {
     margin-top: 6px;
-    font-size: 9px;
+    font-size: var(--panel-meta);
     line-height: 1.6;
     opacity: 0.72;
   }
@@ -128,10 +123,8 @@
     margin-top: 18px;
     padding-right: 8px;
     overflow-y: auto;
-    /* "plan→implement→review" is one unbreakable token 182px wide, and the
-       column is 155px at 1180x820 — without this it scrolls sideways instead */
     overflow-wrap: break-word;
-    font-size: 9px;
+    font-size: var(--panel-narrative);
     line-height: 1.8;
     scrollbar-color: var(--ui-accent) transparent;
     scrollbar-width: thin;
@@ -158,6 +151,7 @@
     align-self: center;
     aspect-ratio: 1;
     margin-top: var(--gutter);
+    max-height: 100%;
     min-width: 0;
     min-height: 0;
   }
@@ -188,15 +182,11 @@
   @media (max-width: 1100px) {
     .split {
       --gutter: 12px;
-      --rail-inset: 0px;
       grid-template-areas:
-        "prev text next"
-        "prev map  next"
-        "rail rail rail";
-      grid-template-columns:
-        var(--paddle-width)
-        minmax(0, 1fr)
-        var(--paddle-width);
+        "text"
+        "map"
+        "rail";
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: minmax(160px, 3fr) minmax(140px, 2fr) auto;
     }
 
@@ -204,30 +194,6 @@
       align-self: stretch;
       aspect-ratio: auto;
       margin-top: 0;
-    }
-  }
-
-  @media (max-width: 900px) {
-    h2 {
-      font-size: 12px;
-    }
-
-    .org {
-      font-size: 9px;
-    }
-
-    .dates {
-      font-size: 8px;
-    }
-
-    .narrative {
-      margin-top: 12px;
-      font-size: 7px;
-      line-height: 1.75;
-    }
-
-    .narrative p + p {
-      margin-top: 10px;
     }
   }
 

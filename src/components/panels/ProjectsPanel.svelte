@@ -47,33 +47,26 @@
 <style>
   .split {
     --gutter: calc(10px * var(--hd-scale, 2));
-    --paddle-width: 24px;
+    --paddle-width: 18px;
     --paddle-height: 116px;
-    --edge-trim-left: var(--content-trim-left, 0px);
-    --edge-trim-right: var(--content-trim-right, 0px);
+    --paddle-strip: calc(var(--paddle-width) + var(--gutter));
     display: grid;
     grid-template-areas:
-      "prev text next"
-      "rail rail rail";
-    grid-template-columns:
-      calc(var(--paddle-width) + var(--edge-trim-left))
-      minmax(0, 1fr)
-      calc(var(--paddle-width) + var(--edge-trim-right));
+      "text"
+      "rail";
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
     gap: var(--gutter);
+    padding-inline: var(--paddle-strip);
     height: 100%;
     min-height: 0;
   }
 
   .split.has-media {
     grid-template-areas:
-      "prev text media next"
-      "rail rail rail rail";
-    grid-template-columns:
-      calc(var(--paddle-width) + var(--edge-trim-left))
-      minmax(0, 1fr)
-      minmax(0, 1fr)
-      calc(var(--paddle-width) + var(--edge-trim-right));
+      "text media"
+      "rail rail";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .media-slot {
@@ -90,6 +83,7 @@
     max-height: 100%;
     border: 2px solid var(--ui-accent);
     object-fit: cover;
+    object-position: 50% 35%;
   }
 
   .page {
@@ -99,6 +93,7 @@
     min-width: 0;
     min-height: 0;
     color: var(--text-primary);
+    overflow-wrap: break-word;
   }
 
   .heading {
@@ -108,20 +103,20 @@
   h2 {
     color: var(--ui-highlight);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--panel-heading);
     line-height: 1.6;
   }
 
   .context {
     margin-top: 6px;
     color: var(--ui-accent);
-    font-size: 10px;
+    font-size: var(--panel-sub);
     line-height: 1.6;
   }
 
   .dates {
     margin-top: 6px;
-    font-size: 9px;
+    font-size: var(--panel-meta);
     line-height: 1.6;
     opacity: 0.72;
   }
@@ -130,7 +125,7 @@
     flex: none;
     margin-top: 14px;
     color: var(--ui-highlight);
-    font-size: 9px;
+    font-size: var(--panel-narrative);
     line-height: 1.8;
   }
 
@@ -140,10 +135,8 @@
     margin-top: 14px;
     padding-right: 8px;
     overflow-y: auto;
-    /* "plan→implement→review" is one unbreakable token 182px wide, and the
-       column is 155px at 1180x820 — without this it scrolls sideways instead */
     overflow-wrap: break-word;
-    font-size: 9px;
+    font-size: var(--panel-narrative);
     line-height: 1.8;
     scrollbar-color: var(--ui-accent) transparent;
     scrollbar-width: thin;
@@ -178,7 +171,7 @@
   .stack li {
     padding: 4px 7px;
     border: 2px solid var(--ui-accent-deep);
-    font-size: 7px;
+    font-size: var(--panel-chip);
     line-height: 1.4;
     letter-spacing: 1px;
   }
@@ -190,13 +183,10 @@
 
     .split.has-media {
       grid-template-areas:
-        "prev text next"
-        "prev media next"
-        "rail rail rail";
-      grid-template-columns:
-        var(--paddle-width)
-        minmax(0, 1fr)
-        var(--paddle-width);
+        "text"
+        "media"
+        "rail";
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: minmax(140px, 3fr) minmax(110px, 2fr) auto;
     }
 
@@ -209,39 +199,6 @@
     }
   }
 
-  @media (max-width: 900px) {
-    h2 {
-      font-size: 12px;
-    }
-
-    .context {
-      font-size: 9px;
-    }
-
-    .dates {
-      font-size: 8px;
-    }
-
-    .impact,
-    .narrative {
-      margin-top: 12px;
-      font-size: 7px;
-      line-height: 1.75;
-    }
-
-    .narrative p + p {
-      margin-top: 10px;
-    }
-
-    .stack {
-      margin-top: 12px;
-    }
-
-    .stack li {
-      font-size: 6px;
-    }
-  }
-
   @media (max-width: 1100px) and (max-height: 740px) {
     .split {
       --gutter: 10px;
@@ -250,6 +207,20 @@
 
     .split.has-media {
       grid-template-rows: minmax(90px, 3fr) minmax(80px, 2fr) auto;
+    }
+  }
+
+  @media (max-width: 430px), (max-height: 850px) {
+    .split.has-media {
+      grid-template-areas:
+        "text"
+        "rail";
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto;
+    }
+
+    .media-slot {
+      display: none;
     }
   }
 </style>
