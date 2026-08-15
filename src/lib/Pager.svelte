@@ -90,6 +90,7 @@
 
 <style>
   .paddle {
+    position: relative;
     display: grid;
     width: var(--paddle-width, 24px);
     height: var(--paddle-height, 116px);
@@ -101,6 +102,16 @@
     background: var(--ui-ink);
     color: var(--ui-accent);
     cursor: pointer;
+  }
+
+  /*
+   * The drawn paddle is 24px wide, which is exactly the tap-target floor with
+   * nothing to spare. Reach into the gutter either side without moving it.
+   */
+  .paddle::before {
+    content: "";
+    position: absolute;
+    inset: 0 -10px;
   }
 
   .prev {
