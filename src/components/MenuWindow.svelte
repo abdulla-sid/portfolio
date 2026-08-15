@@ -253,8 +253,14 @@
     background: transparent;
   }
 
+  /*
+   * These two panels lay themselves out to a fixed height rather than scroll,
+   * so anything that did not fit used to be unreachable — 63px of a project
+   * went missing on a 1366x600 laptop. Scrolling only engages once the content
+   * genuinely overflows, so the fixed layout is untouched wherever it still fits.
+   */
   .panel-body {
-    overflow-y: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
