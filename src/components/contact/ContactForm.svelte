@@ -216,7 +216,7 @@
       <textarea
         id="contact-message"
         name="message"
-        rows="6"
+        rows="3"
         maxlength={MESSAGE_LIMIT}
         bind:value={message}></textarea>
     </div>
@@ -261,7 +261,7 @@
 
   form {
     display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(min-content, 1fr) auto;
     gap: var(--field-gap);
     min-width: 0;
     min-height: 0;
@@ -346,7 +346,8 @@
 
   textarea {
     flex: 1;
-    min-height: 0;
+    height: 0;
+    min-height: 44px;
     padding: 14px 16px;
     background: var(--contact-surface);
     resize: none;
@@ -480,17 +481,6 @@
       font-size: 9px;
     }
 
-    /*
-     * The message row is a 1fr track on desktop so the textarea fills the
-     * panel. On a phone the textarea carries a 96px floor instead, which a
-     * shrinking track cannot honour — it overflowed its own row and covered
-     * the send button. The panel body scrolls here, so let the rows size to
-     * their content and flow instead.
-     */
-    form {
-      grid-template-rows: auto auto auto auto;
-    }
-
     .pair {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -502,7 +492,7 @@
     input,
     textarea {
       min-height: 44px;
-      font-size: 16px;
+      font-size: 8px;
     }
 
     textarea {

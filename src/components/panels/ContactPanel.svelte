@@ -69,20 +69,5 @@
       padding-bottom: 6px;
       border-bottom: 2px dashed var(--ui-accent-deep);
     }
-
-    /*
-     * Filling the panel only works while the form fits it. On a short phone
-     * the fields need more room than is left, and a stretched slot cannot
-     * give it to them — the message box grew past its row and sat on top of
-     * the send button. Let the form take the height it needs and scroll.
-     */
-    .contact {
-      height: auto;
-    }
-
-    .form-slot {
-      flex: none;
-      min-height: auto;
-    }
   }
 </style>
