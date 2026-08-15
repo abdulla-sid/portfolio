@@ -15,27 +15,18 @@
   interface Props {
     id: string;
     frame: "hand-drawn" | "double";
-
     art?: FrameArtId;
-
     x?: number;
     y?: number;
-
     anchor?: string;
-
     scale?: number;
     width?: number | string;
     height?: number | string;
-
     sliceX?: SliceSegment[];
-
     sliceY?: SliceSegment[];
-
     collapseY?: number;
-
     whiten?: number;
     resizable?: boolean;
-
     mobileHidden?: boolean;
     desktopHidden?: boolean;
     onResized?: () => void;
@@ -215,13 +206,7 @@
       );
       --menu-window-max-width: calc(1302px * var(--menu-window-scale));
       --menu-window-width: var(--menu-window-max-width);
-      /*
-       * A ceiling rather than a design size: the panels hold roughly 700px of
-       * content, so a window much taller than this is mostly empty. It was
-       * 690px, which left 530px of dead page on a 1440px screen.
-       */
       --menu-window-max-height: 900px;
-      /* the room between the title and the footer */
       --menu-window-band: calc(
         100vh - var(--menu-window-top-min) - var(--page-margin) -
           var(--desktop-footer-band)
@@ -231,10 +216,6 @@
         var(--menu-window-band),
         var(--menu-window-max-height)
       );
-      /*
-       * Once the window stops growing, split what is left over instead of
-       * pinning the window to the top and pooling all of it underneath.
-       */
       --menu-window-top: calc(
         var(--menu-window-top-min) +
           max(0px, (var(--menu-window-band) - var(--menu-window-height)) / 2)
@@ -254,7 +235,7 @@
 
   @media (min-width: 901px) and (max-width: 1200px) {
     .widget[data-widget-id="menu-window"] {
-      --menu-window-left: clamp(292px, 26vw, var(--menu-window-reserve));
+      --menu-window-left: max(var(--menu-window-reserve), 26vw);
       --menu-window-width: calc(
         100vw - var(--menu-window-left) - var(--page-margin)
       );
@@ -271,7 +252,7 @@
 
   @media (min-width: 901px) and (max-width: 1200px) and (max-height: 850px) {
     .widget[data-widget-id="menu-window"] {
-      --menu-window-left: clamp(360px, 38vw, 460px);
+      --menu-window-left: var(--menu-window-reserve);
     }
   }
 

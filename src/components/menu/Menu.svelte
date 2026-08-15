@@ -9,7 +9,6 @@
 
   interface Props {
     onCommit?: (id: MenuId) => void;
-
     windowOpen?: boolean;
   }
   let { onCommit, windowOpen = false }: Props = $props();
@@ -250,7 +249,7 @@
   }
   .menu-item.is-selected::after {
     background: var(--ui-accent);
-    right: -10%;
+    right: max(-10%, -12px);
   }
 
   @media (max-width: 900px) {

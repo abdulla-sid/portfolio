@@ -141,7 +141,15 @@
   --desktop-footer-band: 39px;
   --menu-item-width: 232px;
   --menu-item-clearance: 16px;
-  --menu-title-clearance: 500px;
+  --panel-heading: 13px;
+  --panel-sub: 10px;
+  --panel-meta: 9px;
+  --panel-narrative: 9px;
+  --panel-chip: 7px;
+
+  --title-size: clamp(16px, 2.5vw, 22px);
+  --title-width: calc(var(--title-size) * 20 + 19px);
+  --menu-title-clearance: calc(var(--page-margin) + var(--title-width) + 22px);
 
   --mobile-panel-inline: 14px;
   --mobile-footer-band: 47px;
@@ -150,6 +158,32 @@
   --mobile-panel-corner-size: 40px;
   --mobile-panel-content-gap: 8px;
   --mobile-player-height: 102px;
+}
+
+@media (min-width: 901px) and (max-height: 850px) {
+  :root {
+    --title-size: clamp(14px, 1.4vw, 16px);
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --panel-heading: 12px;
+    --panel-sub: 9px;
+    --panel-meta: 8px;
+    --panel-narrative: 7px;
+    --panel-chip: 6px;
+  }
+}
+
+@media (min-width: 540px) and (max-width: 900px) and (min-height: 700px) {
+  :root {
+    --panel-heading: 18px;
+    --panel-sub: 12px;
+    --panel-meta: 10px;
+    --panel-narrative: 10px;
+    --panel-chip: 9px;
+  }
 }
 
 body {
