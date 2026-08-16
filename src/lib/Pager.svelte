@@ -107,11 +107,11 @@
   }
 
   .prev::before {
-    right: -6px;
+    right: calc(-1 * var(--paddle-hit-extension, 6px));
   }
 
   .next::before {
-    left: -6px;
+    left: calc(-1 * var(--paddle-hit-extension, 6px));
   }
 
   .prev,
@@ -123,12 +123,12 @@
 
   .prev {
     justify-self: start;
-    margin-left: calc(-1 * var(--paddle-strip, 22px));
+    margin-left: calc(-1 * var(--paddle-offset, var(--paddle-strip, 22px)));
   }
 
   .next {
     justify-self: end;
-    margin-right: calc(-1 * var(--paddle-strip, 22px));
+    margin-right: calc(-1 * var(--paddle-offset, var(--paddle-strip, 22px)));
   }
 
   .paddle:disabled {
@@ -159,7 +159,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
-    margin: 0 var(--rail-inset, 0px) 6px;
+    margin: 0 var(--rail-inset, 0px) var(--rail-bottom, 16px);
     list-style: none;
   }
 

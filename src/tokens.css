@@ -146,6 +146,7 @@
   --panel-meta: 9px;
   --panel-narrative: 9px;
   --panel-chip: 7px;
+  --panel-input: 11px;
 
   --title-size: clamp(16px, 2.5vw, 22px);
   --title-width: calc(var(--title-size) * 20 + 19px);
@@ -173,6 +174,7 @@
     --panel-meta: 8px;
     --panel-narrative: 7px;
     --panel-chip: 6px;
+    --panel-input: 8px;
   }
 }
 
@@ -183,6 +185,7 @@
     --panel-meta: 10px;
     --panel-narrative: 10px;
     --panel-chip: 9px;
+    --panel-input: 12px;
   }
 }
 

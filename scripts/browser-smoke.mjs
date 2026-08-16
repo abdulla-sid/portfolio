@@ -44,6 +44,17 @@ async function clickFirstMenuItem(page) {
   await item.click();
 }
 
+async function clickMenuItem(page, label) {
+  const clicked = await page.evaluate((target) => {
+    const item = [...document.querySelectorAll(".menu-item")].find(
+      (node) => node.textContent?.trim() === target,
+    );
+    item?.click();
+    return Boolean(item);
+  }, label);
+  assert(clicked, `${label} menu item did not render.`);
+}
+
 async function waitForWindowSettled(page) {
   await page.waitForFunction(
     (selector) => {
@@ -221,8 +232,116 @@ try {
   assert.equal(await page.$("vite-error-overlay"), null);
   assert.deepEqual(runtimeErrors, []);
 
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "CONTACT ME");
+  await page.waitForSelector(
+    '[role="dialog"][aria-label="CONTACT ME window"] form',
+    { visible: true },
+  );
+  assert.deepEqual(
+    await page.$eval('[role="dialog"] .body', (element) => ({
+      horizontal: element.scrollWidth > element.clientWidth + 1,
+    })),
+    { horizontal: false },
+  );
+  assert.equal(
+    await page.$eval(CLOSE_BUTTON, (element) =>
+      Math.round(element.getBoundingClientRect().width),
+    ),
+    68,
+  );
+
+  await page.setViewport({ width: 800, height: 1200 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  assert.equal(
+    await page.$eval(
+      '[data-widget-id="player"]',
+      (element) => getComputedStyle(element).display,
+    ),
+    "none",
+  );
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const content = document.querySelector(".content");
+      const deck = document.querySelector(".deck");
+      const body = document.querySelector(".body");
+      return {
+        contentBottom: getComputedStyle(content).bottom,
+        deckMeetsBodyBottom:
+          Math.abs(
+            deck.getBoundingClientRect().bottom -
+              body.getBoundingClientRect().bottom,
+          ) < 0.5,
+      };
+    }),
+    { contentBottom: "36px", deckMeetsBodyBottom: true },
+  );
+
+  await page.setViewport({ width: 1024, height: 768 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnDesktop(page);
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const body = document.querySelector(".body");
+      const vu = document.querySelector(".vu");
+      const presets = [...document.querySelectorAll(".preset")];
+      const bar = document.querySelector(".bar");
+      const transport = document.querySelector(".transport");
+      const presetList = document.querySelector(".presets");
+      const presetStyle = getComputedStyle(presetList);
+      const presetSize = presets[0].getBoundingClientRect().width;
+      const presetGap = Number.parseFloat(presetStyle.columnGap);
+      const barGap = Number.parseFloat(getComputedStyle(bar).columnGap);
+      return {
+        bodyOverflows: body.scrollHeight > body.clientHeight + 1,
+        presetSize: Math.round(presetSize),
+        presetRows: new Set(
+          presets.map((node) => Math.round(node.getBoundingClientRect().top)),
+        ).size,
+        vuWidth: Math.round(vu.getBoundingClientRect().width),
+        supportsEight:
+          bar.clientWidth + 1 >=
+          transport.getBoundingClientRect().width +
+            barGap +
+            8 * presetSize +
+            7 * presetGap,
+      };
+    }),
+    {
+      bodyOverflows: false,
+      presetSize: 22,
+      presetRows: 1,
+      vuWidth: 100,
+      supportsEight: true,
+    },
+  );
+  const beforeDrag = await page.$eval(
+    '[data-widget-id="menu-window"]',
+    (element) => element.getBoundingClientRect().left,
+  );
+  await page.$eval(
+    '[data-widget-id="menu-window"]',
+    (element, left) => {
+      element.style.left = `${left - 30}px`;
+      element.style.right = "auto";
+    },
+    beforeDrag,
+  );
+  assert.equal(
+    await page.$eval(
+      '[data-widget-id="menu-window"]',
+      (element, previous) =>
+        element.getBoundingClientRect().left < previous - 20,
+      beforeDrag,
+    ),
+    true,
+  );
+
   process.stdout.write(
-    "Browser smoke passed: desktop-to-mobile About flow kept one Audio instance.\n",
+    "Browser smoke passed: lifecycle and responsive layout assertions held.\n",
   );
 } finally {
   await browser?.close();

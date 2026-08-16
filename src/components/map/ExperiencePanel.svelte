@@ -63,6 +63,7 @@
     --paddle-width: 18px;
     --paddle-height: 116px;
     --paddle-strip: calc(var(--paddle-width) + var(--gutter));
+    --paddle-offset: var(--paddle-width);
     --map-share: 0.62;
     --map-scale: 0.9;
     display: grid;
@@ -128,6 +129,7 @@
     line-height: 1.8;
     scrollbar-color: var(--ui-accent) transparent;
     scrollbar-width: thin;
+    box-shadow: inset 0 -2px var(--ui-accent-deep);
   }
 
   .narrative p + p {
@@ -194,6 +196,32 @@
       align-self: stretch;
       aspect-ratio: auto;
       margin-top: 0;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .split {
+      --paddle-width: 20px;
+      --paddle-hit-extension: 4px;
+      --paddle-offset: var(--paddle-width);
+    }
+  }
+
+  @media (max-width: 340px) {
+    .split {
+      --paddle-width: 14px;
+      --paddle-hit-extension: 10px;
+      --paddle-strip: calc(var(--paddle-width) + 10px);
+    }
+  }
+
+  @media (min-width: 901px) and (max-width: 1200px) {
+    .split {
+      --paddle-width: 22px;
+      --paddle-hit-extension: 2px;
+      --paddle-strip: calc(var(--paddle-width) + 8px);
+      --paddle-offset: var(--paddle-strip);
+      --map-scale: 1;
     }
   }
 

@@ -254,14 +254,17 @@
 <style>
   form,
   .sent {
-    --field-gap: var(--panel-gap, 22px);
+    --field-gap: var(--panel-gap, 28px);
     color: var(--ui-accent);
     font: inherit;
   }
 
   form {
     display: grid;
-    grid-template-rows: auto auto minmax(min-content, 1fr) auto;
+    grid-template-rows:
+      auto auto minmax(min-content, var(--message-max, 320px))
+      auto auto;
+    align-content: start;
     gap: var(--field-gap);
     min-width: 0;
     min-height: 0;
@@ -274,7 +277,7 @@
     min-width: 0;
   }
 
-  @container contact-form (max-width: 480px) {
+  @container contact-form (max-width: 300px) {
     .pair {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -294,7 +297,7 @@
   }
 
   .key {
-    font-size: 8px;
+    font-size: var(--panel-meta);
     letter-spacing: 1px;
     color: var(--text-muted);
   }
@@ -305,7 +308,7 @@
     background: none;
     color: var(--ui-accent);
     font: inherit;
-    font-size: 11px;
+    font-size: var(--panel-input);
     line-height: 1.6;
     min-width: 0;
   }
@@ -378,8 +381,9 @@
   .rail {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 6px 12px;
     min-width: 0;
   }
 
@@ -404,7 +408,7 @@
   }
 
   .count {
-    font-size: 8px;
+    font-size: var(--panel-meta);
     letter-spacing: 1px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
@@ -414,8 +418,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-left: auto;
-    font-size: 8px;
+    font-size: var(--panel-meta);
     letter-spacing: 1px;
     color: var(--text-muted);
     white-space: nowrap;
@@ -441,7 +444,7 @@
     padding: 12px 24px;
     color: var(--ui-ink);
     font: inherit;
-    font-size: 10px;
+    font-size: var(--panel-sub);
     letter-spacing: 1px;
     cursor: pointer;
   }
@@ -477,7 +480,7 @@
   @media (max-width: 900px) {
     form,
     .sent {
-      --field-gap: 12px;
+      --field-gap: 20px;
       font-size: 9px;
     }
 
@@ -492,7 +495,6 @@
     input,
     textarea {
       min-height: 44px;
-      font-size: 8px;
     }
 
     textarea {
@@ -501,17 +503,160 @@
     }
 
     .rail {
+      justify-content: space-between;
       flex-wrap: wrap;
     }
 
     .rail button {
       width: 100%;
       min-height: 44px;
-      font-size: 9px;
     }
 
     .signal {
+      min-width: 0;
       margin-left: 0;
+      white-space: normal;
+    }
+  }
+
+  @media (max-width: 900px) and (min-height: 701px) {
+    form,
+    .sent {
+      --field-gap: 14px;
+    }
+
+    .pair {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 12px;
+    }
+
+    .rail {
+      flex-wrap: nowrap;
+    }
+
+    .rail button {
+      width: auto;
+      padding-inline: 16px;
+    }
+  }
+
+  @media (max-width: 900px) and (max-height: 700px) {
+    form {
+      gap: 8px;
+    }
+
+    .pair {
+      gap: 8px;
+    }
+
+    .rail {
+      justify-content: flex-end;
+    }
+
+    .signal {
+      white-space: normal;
+    }
+
+    .count {
+      display: none;
+    }
+
+    .meter {
+      gap: 2px;
+    }
+
+    .meter i {
+      width: 6px;
+    }
+
+    .rail button {
+      width: auto;
+      min-height: 40px;
+      padding: 8px 10px;
+    }
+
+    label,
+    .message {
+      gap: 4px;
+    }
+
+    input,
+    textarea {
+      min-height: 36px;
+    }
+
+    input {
+      padding: 2px 6px 4px;
+    }
+
+    textarea {
+      min-height: 78px;
+      padding: 7px 8px;
+    }
+  }
+
+  @media (min-width: 901px) and (max-height: 740px) {
+    form {
+      gap: 10px;
+    }
+
+    .pair {
+      gap: 14px;
+    }
+
+    label,
+    .message {
+      gap: 4px;
+    }
+
+    input {
+      padding: 3px 8px 5px;
+    }
+
+    textarea {
+      min-height: 86px;
+      padding: 8px 10px;
+    }
+
+    button {
+      padding: 9px 16px;
+    }
+  }
+
+  @media (min-width: 901px) and (max-width: 1200px) and (max-height: 850px) {
+    form {
+      gap: 10px;
+    }
+
+    .pair {
+      gap: 8px;
+    }
+
+    .signal {
+      min-width: 0;
+      white-space: normal;
+    }
+
+    .count {
+      display: none;
+    }
+
+    label,
+    .message {
+      gap: 4px;
+    }
+
+    input {
+      padding: 3px 8px 5px;
+    }
+
+    textarea {
+      min-height: 86px;
+      padding: 8px 10px;
+    }
+
+    button {
+      padding: 9px 16px;
     }
   }
 </style>

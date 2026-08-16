@@ -27,7 +27,7 @@
 
   const CLOSE_TAB = notchedTab(12, 50);
   const CLOSE_TAB_SCALE = 1.8;
-  const CLOSE_TAB_MOBILE = notchedTab(16, 84);
+  const CLOSE_TAB_MOBILE = notchedTab(16, 68);
 
   const reduceMotion = prefersReducedMotion();
   let win = $state<WindowState>({ phase: "closed", frame: null });
@@ -137,7 +137,7 @@
   ]}
   collapseY={view.collapseY}
   whiten={view.whiten}
-  anchor="top: var(--menu-window-top, 125px); right: var(--page-margin)"
+  anchor="top: var(--menu-window-top, 125px); right: var(--menu-window-right, var(--page-margin))"
 >
   {#if isOpen}
     <div
@@ -251,6 +251,7 @@
   }
 
   .panel-body {
+    container: panel-body / size;
     overflow: clip auto;
     display: flex;
     flex-direction: column;
@@ -368,6 +369,12 @@
 
     .body::-webkit-scrollbar {
       display: none;
+    }
+  }
+
+  @media (min-width: 800px) and (max-width: 900px) and (min-height: 1100px) {
+    .content.player-docked {
+      bottom: 36px;
     }
   }
 </style>

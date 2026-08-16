@@ -42,8 +42,10 @@
     <p class="heading">NOTE TO SELF</p>
     <dl>
       {#each LINES as line (line.label)}
-        <dt>{line.label}</dt>
-        <dd>{line.value}</dd>
+        <div class="fact">
+          <dt>{line.label}</dt>
+          <dd>{line.value}</dd>
+        </div>
       {/each}
     </dl>
   </div>
@@ -88,9 +90,15 @@
   }
 
   dl {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .fact {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 12px 10px;
+    gap: 10px;
   }
 
   dt {
@@ -122,11 +130,15 @@
   }
 
   .strip dl {
-    grid-auto-flow: column;
-    grid-template-columns: none;
-    grid-template-rows: auto auto;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) auto auto;
     justify-content: space-between;
     gap: 6px 14px;
+  }
+
+  .strip .fact {
+    display: block;
+    min-width: 0;
   }
 
   .strip dd {
@@ -148,6 +160,31 @@
 
     .strip dd {
       font-size: 8px;
+    }
+  }
+
+  @media (max-width: 379px) {
+    .strip .tape {
+      top: -8px;
+      left: 12px;
+      width: 22px;
+      height: 16px;
+    }
+
+    .strip .content {
+      padding-top: 14px;
+    }
+
+    .strip dl {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .strip .fact:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .strip dd {
+      overflow-wrap: anywhere;
     }
   }
 </style>

@@ -208,6 +208,7 @@
 
 <style>
   .deck {
+    container: deck-chassis / inline-size;
     font-size: 8px;
     line-height: 1;
   }
@@ -218,7 +219,7 @@
   }
 
   .chassis {
-    container: deck-chassis / inline-size;
+    --meter-unit: 16px;
     padding: 16px;
     box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
     display: flex;
@@ -283,7 +284,7 @@
   }
 
   .vu {
-    flex: 0 0 156px;
+    flex: 0 0 var(--vu-width, 156px);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -300,8 +301,8 @@
     inset: 0;
     background-image: repeating-linear-gradient(
       90deg,
-      currentColor 0 12px,
-      transparent 12px 16px
+      currentColor 0 calc(var(--meter-unit) - 4px),
+      transparent calc(var(--meter-unit) - 4px) var(--meter-unit)
     );
   }
 
@@ -311,7 +312,7 @@
 
   .lvl {
     color: var(--ui-accent);
-    width: calc(var(--band-idle) * 16px);
+    width: calc(var(--band-idle) * var(--meter-unit));
     animation: level var(--band-duration) steps(6, end) var(--band-delay)
       infinite alternate;
     animation-play-state: paused;
@@ -327,17 +328,17 @@
 
   @keyframes level {
     from {
-      width: 32px;
+      width: calc(2 * var(--meter-unit));
     }
     to {
-      width: 128px;
+      width: calc(8 * var(--meter-unit));
     }
   }
 
   .cap {
     position: absolute;
     top: 0;
-    left: calc(var(--band-idle) * 16px);
+    left: calc(var(--band-idle) * var(--meter-unit));
     width: 4px;
     height: 8px;
     background: var(--ui-highlight);
@@ -352,10 +353,10 @@
 
   @keyframes peak {
     from {
-      left: 48px;
+      left: calc(3 * var(--meter-unit));
     }
     to {
-      left: 144px;
+      left: calc(9 * var(--meter-unit));
     }
   }
 
@@ -430,7 +431,7 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    column-gap: 10px;
+    column-gap: var(--bar-gap, 10px);
     margin-block: 8px 6px;
   }
 
@@ -438,12 +439,12 @@
     display: flex;
     flex: none;
     align-items: center;
-    gap: 8px;
+    gap: var(--transport-gap, 8px);
   }
 
   .btn {
-    width: 34px;
-    height: 34px;
+    width: var(--transport-size, 34px);
+    height: var(--transport-size, 34px);
     border: 0;
     background: none;
     box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
@@ -459,8 +460,8 @@
   }
 
   .btn.big {
-    width: 44px;
-    height: 44px;
+    width: var(--transport-big-size, 44px);
+    height: var(--transport-big-size, 44px);
     background: var(--ui-accent);
     box-shadow: none;
   }
@@ -476,28 +477,74 @@
     --preset-gap: 6px;
     list-style: none;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: flex-end;
     gap: var(--preset-gap);
     margin-inline-start: auto;
   }
 
-  @container deck-chassis (max-width: 384px) {
+  @container deck-chassis (max-width: 416px) {
+    .screen {
+      gap: 16px;
+    }
+
+    .vu {
+      --vu-width: 124px;
+    }
+
     .presets {
       --preset-size: 28px;
       --preset-gap: 4px;
     }
   }
 
-  @container deck-chassis (max-width: 326px) {
+  @container deck-chassis (max-width: 358px) {
+    .chassis {
+      --meter-unit: 12px;
+      --bar-gap: 8px;
+      --transport-gap: 4px;
+      --transport-size: 28px;
+      --transport-big-size: 36px;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .screen {
+      gap: 12px;
+      padding: 8px 10px;
+    }
+
+    .vu {
+      --vu-width: 100px;
+    }
+
     .presets {
-      --preset-size: 20px;
+      --preset-size: 22px;
+      --preset-gap: 2px;
     }
   }
 
-  @container deck-chassis (max-width: 278px) {
+  @container deck-chassis (max-width: 310px) {
+    .chassis {
+      --meter-unit: 10px;
+      --bar-gap: 5px;
+      --transport-gap: 2px;
+      --transport-size: 24px;
+      --transport-big-size: 28px;
+      padding: 8px;
+    }
+
+    .screen {
+      gap: 10px;
+    }
+
+    .vu {
+      --vu-width: 88px;
+    }
+
     .presets {
-      --preset-size: 16px;
+      --preset-size: 22px;
+      --preset-gap: 2px;
     }
   }
 
@@ -518,6 +565,12 @@
     content: "";
     position: absolute;
     inset: -4px -2px;
+  }
+
+  @container deck-chassis (max-width: 358px) {
+    .preset::before {
+      inset: -4px -1px;
+    }
   }
 
   .preset.on {

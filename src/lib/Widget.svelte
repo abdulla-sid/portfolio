@@ -235,11 +235,21 @@
 
   @media (min-width: 901px) and (max-width: 1200px) {
     .widget[data-widget-id="menu-window"] {
+      --menu-window-edge: min(var(--page-margin), 40px);
+      --menu-window-right: var(--menu-window-edge);
       --menu-window-left: max(var(--menu-window-reserve), 26vw);
       --menu-window-width: calc(
-        100vw - var(--menu-window-left) - var(--page-margin)
+        100vw - var(--menu-window-left) - var(--menu-window-edge)
       );
-      left: var(--menu-window-left) !important;
+    }
+  }
+
+  @media (min-width: 2000px) {
+    .widget[data-widget-id="menu-window"] {
+      --menu-window-width: min(
+        65vw,
+        calc(100vw - var(--menu-window-reserve) - var(--page-margin))
+      );
     }
   }
 

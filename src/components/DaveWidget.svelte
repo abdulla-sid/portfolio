@@ -670,6 +670,13 @@
     }
   }
 
+  @media (min-width: 901px) and (max-height: 640px) {
+    .dave-widget {
+      --dave-scale: 1.55px;
+      --ann-box-width: 148px;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .dave-widget,
     .dave-widget.tapped,

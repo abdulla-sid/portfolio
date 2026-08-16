@@ -34,6 +34,10 @@
 
   .lede {
     margin-bottom: 30px;
+    color: var(--ui-highlight);
+    font-size: var(--panel-heading);
+    line-height: 1.6;
+    max-width: 42ch;
   }
 
   .form-failed {
@@ -68,6 +72,14 @@
       margin-bottom: 32px;
       padding-bottom: 6px;
       border-bottom: 2px dashed var(--ui-accent-deep);
+    }
+  }
+
+  @media (max-width: 900px) and (max-height: 700px),
+    (min-width: 901px) and (max-height: 740px) {
+    .lede {
+      margin-bottom: 14px;
+      font-size: var(--panel-sub);
     }
   }
 </style>
