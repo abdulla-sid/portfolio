@@ -161,10 +161,13 @@
       min-height: 0;
     }
 
+    .text {
+      margin-bottom: 20px;
+    }
+
     .detail :global(.note.strip) {
       display: block;
       margin-top: auto;
-      padding-top: 20px;
     }
   }
 

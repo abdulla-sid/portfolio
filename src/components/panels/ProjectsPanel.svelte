@@ -143,7 +143,12 @@
     line-height: 1.8;
     scrollbar-color: var(--ui-accent) transparent;
     scrollbar-width: thin;
-    box-shadow: inset 0 -2px var(--ui-accent-deep);
+    mask-image: linear-gradient(
+      to bottom,
+      var(--mask-opaque) 0,
+      var(--mask-opaque) calc(100% - 10px),
+      transparent 100%
+    );
   }
 
   .narrative p + p {
@@ -211,11 +216,18 @@
     }
   }
 
+  @media (max-width: 539px) {
+    .split {
+      --paddle-offset: var(--paddle-strip);
+    }
+  }
+
   @media (max-width: 340px) {
     .split {
       --paddle-width: 14px;
       --paddle-hit-extension: 10px;
       --paddle-strip: calc(var(--paddle-width) + 10px);
+      --paddle-offset: var(--paddle-strip);
     }
   }
 

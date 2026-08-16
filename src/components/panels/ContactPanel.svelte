@@ -72,6 +72,7 @@
       margin-bottom: 32px;
       padding-bottom: 6px;
       border-bottom: 2px dashed var(--ui-accent-deep);
+      font-size: var(--panel-sub);
     }
   }
 

@@ -253,6 +253,130 @@ try {
     68,
   );
 
+  await page.setViewport({ width: 320, height: 800 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const note = document
+        .querySelector(".note.strip")
+        .getBoundingClientRect();
+      const tape = document
+        .querySelector(".note.strip .tape")
+        .getBoundingClientRect();
+      const copy = document.querySelector(".text").getBoundingClientRect();
+      return {
+        contained:
+          tape.top >= note.top &&
+          tape.right <= note.right &&
+          tape.bottom <= note.bottom &&
+          tape.left >= note.left,
+        noteClearsCopy: note.top - copy.bottom >= 20,
+      };
+    }),
+    { contained: true, noteClearsCopy: true },
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "EXPERIENCE");
+  await page.waitForSelector(".paddle", { visible: true });
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const prev = document
+        .querySelector(".paddle.prev")
+        .getBoundingClientRect();
+      const next = document
+        .querySelector(".paddle.next")
+        .getBoundingClientRect();
+      const narrative = document.querySelector(".page").getBoundingClientRect();
+      const map = document.querySelector(".map-slot").getBoundingClientRect();
+      return {
+        leftGap: Math.round(narrative.left - prev.right),
+        rightGap: Math.round(next.left - Math.max(narrative.right, map.right)),
+      };
+    }),
+    { leftGap: 10, rightGap: 10 },
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector('[role="dialog"]', { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "CONTACT ME");
+  await page.waitForSelector(".contact .lede", { visible: true });
+  assert.equal(
+    await page.$eval(".contact .lede", (element) =>
+      Number.parseFloat(getComputedStyle(element).fontSize),
+    ),
+    9,
+  );
+
+  await page.setViewport({ width: 344, height: 882 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  assert.equal(
+    await page.evaluate(() => {
+      const note = document
+        .querySelector(".note.strip")
+        .getBoundingClientRect();
+      const copy = document.querySelector(".text").getBoundingClientRect();
+      return note.top - copy.bottom >= 20;
+    }),
+    true,
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "EXPERIENCE");
+  await page.waitForSelector(".paddle", { visible: true });
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const prev = document
+        .querySelector(".paddle.prev")
+        .getBoundingClientRect();
+      const next = document
+        .querySelector(".paddle.next")
+        .getBoundingClientRect();
+      const narrative = document.querySelector(".page").getBoundingClientRect();
+      const map = document.querySelector(".map-slot").getBoundingClientRect();
+      const scrollStyle = getComputedStyle(
+        document.querySelector(".narrative"),
+      );
+      return {
+        leftGap: Math.round(narrative.left - prev.right),
+        rightGap: Math.round(next.left - Math.max(narrative.right, map.right)),
+        boxShadow: scrollStyle.boxShadow,
+        hasFade: scrollStyle.maskImage !== "none",
+      };
+    }),
+    { leftGap: 12, rightGap: 12, boxShadow: "none", hasFade: true },
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector('[role="dialog"]', { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "CONTACT ME");
+  await page.waitForSelector(".contact form", { visible: true });
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const fields = [...document.querySelectorAll(".pair input")].map((node) =>
+        node.getBoundingClientRect(),
+      );
+      const message = document
+        .querySelector("textarea")
+        .getBoundingClientRect();
+      const rail = document.querySelector(".rail").getBoundingClientRect();
+      return {
+        fieldsHaveSeparateRows: Math.abs(fields[0].top - fields[1].top) > 40,
+        messageIsCompact: message.height <= 100,
+        railClearsMessage: rail.top - message.bottom >= 32,
+      };
+    }),
+    {
+      fieldsHaveSeparateRows: true,
+      messageIsCompact: true,
+      railClearsMessage: true,
+    },
+  );
+
   await page.setViewport({ width: 800, height: 1200 });
   await page.goto(url, { waitUntil: "domcontentloaded" });
   await openAboutOnMobile(page);

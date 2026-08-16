@@ -118,7 +118,9 @@
   }
 
   .strip .tape {
-    left: 20px;
+    top: 8px;
+    right: 16px;
+    left: auto;
   }
 
   .strip .content {
@@ -165,14 +167,9 @@
 
   @media (max-width: 379px) {
     .strip .tape {
-      top: -8px;
-      left: 12px;
+      right: 12px;
       width: 22px;
       height: 16px;
-    }
-
-    .strip .content {
-      padding-top: 14px;
     }
 
     .strip dl {

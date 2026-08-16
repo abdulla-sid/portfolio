@@ -484,6 +484,10 @@
       font-size: 9px;
     }
 
+    form {
+      grid-template-rows: auto auto minmax(72px, 120px) auto auto;
+    }
+
     .pair {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -498,13 +502,14 @@
     }
 
     textarea {
-      min-height: 96px;
+      min-height: 72px;
       padding: 10px 12px;
     }
 
     .rail {
       justify-content: space-between;
       flex-wrap: wrap;
+      margin-top: 8px;
     }
 
     .rail button {
@@ -525,11 +530,6 @@
       --field-gap: 14px;
     }
 
-    .pair {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      column-gap: 12px;
-    }
-
     .rail {
       flex-wrap: nowrap;
     }
@@ -542,6 +542,7 @@
 
   @media (max-width: 900px) and (max-height: 700px) {
     form {
+      grid-template-rows: auto auto minmax(64px, 88px) auto auto;
       gap: 8px;
     }
 
@@ -590,7 +591,7 @@
     }
 
     textarea {
-      min-height: 78px;
+      min-height: 64px;
       padding: 7px 8px;
     }
   }
