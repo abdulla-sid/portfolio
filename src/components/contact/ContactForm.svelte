@@ -292,9 +292,7 @@
     .pair {
       grid-template-columns: minmax(0, 1fr);
     }
-  }
 
-  @container contact-form (max-width: 300px) {
     .count {
       display: none;
     }
@@ -543,6 +541,11 @@
       --field-gap: 14px;
     }
 
+    form {
+      grid-template-rows: auto auto minmax(72px, 1fr) auto auto;
+      align-content: stretch;
+    }
+
     .rail {
       flex-wrap: nowrap;
     }
@@ -550,11 +553,6 @@
     .rail button {
       width: auto;
       padding-inline: 16px;
-    }
-
-    form {
-      grid-template-rows: auto auto minmax(72px, 1fr) auto auto;
-      align-content: stretch;
     }
   }
 
@@ -616,30 +614,23 @@
 
   @media (max-width: 499px) {
     .rail {
-      align-items: center;
-      flex-direction: row;
       flex-wrap: nowrap;
     }
 
     .signal {
       flex: 1;
-      white-space: normal;
     }
 
     .rail button {
       flex: none;
-      width: auto;
       padding-inline: 10px;
     }
   }
 
-  @media (min-width: 901px) and (max-height: 740px) {
+  @media (min-width: 901px) and (max-height: 740px),
+    (min-width: 901px) and (max-width: 1200px) and (max-height: 850px) {
     form {
       gap: 10px;
-    }
-
-    .pair {
-      gap: 14px;
     }
 
     label,
@@ -661,11 +652,13 @@
     }
   }
 
-  @media (min-width: 901px) and (max-width: 1200px) and (max-height: 850px) {
-    form {
-      gap: 10px;
+  @media (min-width: 901px) and (max-height: 740px) {
+    .pair {
+      gap: 14px;
     }
+  }
 
+  @media (min-width: 901px) and (max-width: 1200px) and (max-height: 850px) {
     .pair {
       gap: 8px;
     }
@@ -677,24 +670,6 @@
 
     .count {
       display: none;
-    }
-
-    label,
-    .message {
-      gap: 4px;
-    }
-
-    input {
-      padding: 3px 8px 5px;
-    }
-
-    textarea {
-      min-height: 86px;
-      padding: 8px 10px;
-    }
-
-    button {
-      padding: 9px 16px;
     }
   }
 </style>

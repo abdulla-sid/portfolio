@@ -294,9 +294,11 @@ try {
       return {
         leftGap: Math.round(narrative.left - prev.right),
         rightGap: Math.round(next.left - Math.max(narrative.right, map.right)),
+        paddleWidth: Math.round(prev.width),
+        paddleHeight: Math.round(prev.height),
       };
     }),
-    { leftGap: 10, rightGap: 10 },
+    { leftGap: 10, rightGap: 10, paddleWidth: 14, paddleHeight: 116 },
   );
   await page.click(CLOSE_BUTTON);
   await page.waitForSelector('[role="dialog"]', { hidden: true });
@@ -308,6 +310,20 @@ try {
       Number.parseFloat(getComputedStyle(element).fontSize),
     ),
     9,
+  );
+  assert.equal(
+    await page.$eval("textarea", async (element) => {
+      const value = "compact message ".repeat(50);
+      element.focus();
+      element.value = value;
+      element.setSelectionRange(value.length, value.length);
+      element.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return Math.abs(
+        element.scrollTop - (element.scrollHeight - element.clientHeight),
+      );
+    }),
+    0,
   );
 
   await page.setViewport({ width: 344, height: 882 });
@@ -344,11 +360,20 @@ try {
       return {
         leftGap: Math.round(narrative.left - prev.right),
         rightGap: Math.round(next.left - Math.max(narrative.right, map.right)),
+        paddleWidth: Math.round(prev.width),
+        paddleHeight: Math.round(prev.height),
         boxShadow: scrollStyle.boxShadow,
         hasFade: scrollStyle.maskImage !== "none",
       };
     }),
-    { leftGap: 12, rightGap: 12, boxShadow: "none", hasFade: true },
+    {
+      leftGap: 10,
+      rightGap: 10,
+      paddleWidth: 16,
+      paddleHeight: 88,
+      boxShadow: "none",
+      hasFade: true,
+    },
   );
   await page.click(CLOSE_BUTTON);
   await page.waitForSelector('[role="dialog"]', { hidden: true });
@@ -364,17 +389,93 @@ try {
         .querySelector("textarea")
         .getBoundingClientRect();
       const rail = document.querySelector(".rail").getBoundingClientRect();
+      const body = document.querySelector(".body").getBoundingClientRect();
       return {
         fieldsHaveSeparateRows: Math.abs(fields[0].top - fields[1].top) > 40,
-        messageIsCompact: message.height <= 100,
-        railClearsMessage: rail.top - message.bottom >= 32,
+        messageUsesFreeHeight: message.height > 100,
+        railClearsMessage: rail.top - message.bottom >= 20,
+        railMeetsPanelBottom: body.bottom - rail.bottom <= 1,
+        railDirection: getComputedStyle(document.querySelector(".rail"))
+          .flexDirection,
       };
     }),
     {
       fieldsHaveSeparateRows: true,
-      messageIsCompact: true,
+      messageUsesFreeHeight: true,
       railClearsMessage: true,
+      railMeetsPanelBottom: true,
+      railDirection: "row",
     },
+  );
+
+  await page.setViewport({ width: 360, height: 640 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "EXPERIENCE");
+  await page.waitForSelector(".paddle", { visible: true });
+  assert.deepEqual(
+    await page.$eval(".paddle.prev", (element) => {
+      const paddle = element.getBoundingClientRect();
+      return {
+        width: Math.round(paddle.width),
+        height: Math.round(paddle.height),
+      };
+    }),
+    { width: 20, height: 80 },
+  );
+
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 390, height: 900 },
+    { width: 412, height: 915 },
+  ]) {
+    await page.setViewport(viewport);
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await openAboutOnMobile(page);
+    await page.click(CLOSE_BUTTON);
+    await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+    await page.click('button[aria-label="Toggle navigation"]');
+    await clickMenuItem(page, "CONTACT ME");
+    await page.waitForSelector(".contact form", { visible: true });
+    assert.deepEqual(
+      await page.evaluate(() => {
+        const form = document.querySelector(".contact form");
+        const body = document.querySelector(".body").getBoundingClientRect();
+        const rail = document.querySelector(".rail").getBoundingClientRect();
+        return {
+          alignContent: getComputedStyle(form).alignContent,
+          railMeetsPanelBottom: body.bottom - rail.bottom <= 1,
+        };
+      }),
+      { alignContent: "stretch", railMeetsPanelBottom: true },
+    );
+  }
+
+  await page.setViewport({ width: 556, height: 960 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "PROJECTS");
+  await page.waitForSelector(".paddle", { visible: true });
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      const prev = document
+        .querySelector(".paddle.prev")
+        .getBoundingClientRect();
+      const page = document.querySelector(".page").getBoundingClientRect();
+      return {
+        heading: root.getPropertyValue("--panel-heading").trim(),
+        narrative: root.getPropertyValue("--panel-narrative").trim(),
+        paddleClearance: Math.round(page.left - prev.right),
+      };
+    }),
+    { heading: "14px", narrative: "8px", paddleClearance: 12 },
   );
 
   await page.setViewport({ width: 800, height: 1200 });
