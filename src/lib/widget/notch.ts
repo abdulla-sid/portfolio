@@ -13,15 +13,19 @@ export interface SteppedCorner {
   path: string;
 }
 
-const DIAGONAL_STROKE = 2;
+const DIAGONAL_STROKE = 1;
 
-export function notchedTab(steps: number, width: number): NotchedTab {
-  const edge = ["M0 0"];
-  const face = [`M${DIAGONAL_STROKE} 0`];
+export function notchedTab(
+  steps: number,
+  width: number,
+  diagonalInset = 0,
+): NotchedTab {
+  const edge = [`M${diagonalInset} 0`];
+  const face = [`M${diagonalInset + DIAGONAL_STROKE} 0`];
 
-  for (let i = 1; i <= steps; i += 1) edge.push(`V${i} H${i}`);
+  for (let i = 1; i <= steps; i += 1) edge.push(`V${i} H${diagonalInset + i}`);
   for (let i = 1; i <= steps - DIAGONAL_STROKE; i += 1)
-    face.push(`V${i} H${i + DIAGONAL_STROKE}`);
+    face.push(`V${i} H${diagonalInset + i + DIAGONAL_STROKE}`);
 
   edge.push(`H${width} V0 Z`);
   face.push(`H${width - DIAGONAL_STROKE} V0 Z`);

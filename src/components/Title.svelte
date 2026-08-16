@@ -31,4 +31,10 @@
       white-space: nowrap;
     }
   }
+
+  @media (min-width: 640px) and (max-width: 900px) {
+    #title {
+      font-size: 13px;
+    }
+  }
 </style>

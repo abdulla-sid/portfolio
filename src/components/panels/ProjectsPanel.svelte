@@ -51,7 +51,12 @@
     --paddle-height: var(--pager-paddle-height);
     --paddle-hit-extension: var(--pager-paddle-hit-extension);
     --paddle-strip: calc(
-      var(--paddle-width) + var(--pager-paddle-strip-gap, var(--gutter))
+      var(--paddle-width) +
+        max(
+          var(--pager-paddle-strip-gap, var(--gutter)),
+          var(--pager-paddle-offset-extra, 0px)
+        ) +
+        var(--pager-paddle-edge-inset, 0px)
     );
     --paddle-offset: calc(
       var(--paddle-width) + var(--pager-paddle-offset-extra, 0px)

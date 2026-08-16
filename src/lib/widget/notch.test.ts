@@ -17,7 +17,17 @@ describe("notchedTab", () => {
       width: 10,
       height: 3,
       edge: "M0 0 V1 H1 V2 H2 V3 H3 H10 V0 Z",
-      face: "M2 0 V1 H3 H8 V0 Z",
+      face: "M1 0 V1 H2 V2 H3 H9 V0 Z",
+    });
+  });
+
+  it("can move the diagonal without changing the tab bounds", () => {
+    expect(notchedTab(3, 12, 4)).toEqual({
+      viewBox: "0 0 12 3",
+      width: 12,
+      height: 3,
+      edge: "M4 0 V1 H5 V2 H6 V3 H7 H12 V0 Z",
+      face: "M5 0 V1 H6 V2 H7 H11 V0 Z",
     });
   });
 });

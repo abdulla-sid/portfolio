@@ -25,9 +25,10 @@
     line: { collapseY: 0.011, whiten: 1 },
   } as const;
 
-  const CLOSE_TAB = notchedTab(12, 50);
-  const CLOSE_TAB_SCALE = 1.8;
+  const CLOSE_TAB = notchedTab(27, 108, 18);
+  const CLOSE_TAB_SCALE = 1;
   const CLOSE_TAB_MOBILE = notchedTab(16, 68);
+  const CLOSE_TAB_TABLET = notchedTab(24, 100, 8);
 
   const reduceMotion = prefersReducedMotion();
   let win = $state<WindowState>({ phase: "closed", frame: null });
@@ -155,6 +156,8 @@
         style:--close-height="{CLOSE_TAB.height * CLOSE_TAB_SCALE}px"
         style:--close-mobile-width="{CLOSE_TAB_MOBILE.width}px"
         style:--close-mobile-height="{CLOSE_TAB_MOBILE.height}px"
+        style:--close-tablet-width="{CLOSE_TAB_TABLET.width}px"
+        style:--close-tablet-height="{CLOSE_TAB_TABLET.height}px"
         onclick={requestClose}
       >
         <svg class="tab desktop" viewBox={CLOSE_TAB.viewBox} aria-hidden="true">
@@ -168,6 +171,14 @@
         >
           <path class="edge" d={CLOSE_TAB_MOBILE.edge}></path>
           <path class="face" d={CLOSE_TAB_MOBILE.face}></path>
+        </svg>
+        <svg
+          class="tab tablet"
+          viewBox={CLOSE_TAB_TABLET.viewBox}
+          aria-hidden="true"
+        >
+          <path class="edge" d={CLOSE_TAB_TABLET.edge}></path>
+          <path class="face" d={CLOSE_TAB_TABLET.face}></path>
         </svg>
         <span>CLOSE</span>
       </button>
@@ -288,7 +299,8 @@
     shape-rendering: crispEdges;
   }
 
-  .tab.mobile {
+  .tab.mobile,
+  .tab.tablet {
     display: none;
   }
 
@@ -305,7 +317,7 @@
     align-self: center;
     justify-self: end;
     padding-right: 9px;
-    font-size: 7px;
+    font-size: 8px;
   }
 
   .close:focus-visible {
@@ -349,7 +361,7 @@
     }
 
     .close span {
-      padding-right: 9px;
+      padding-right: 4px;
     }
 
     .tab.desktop {
@@ -372,7 +384,27 @@
     }
   }
 
-  @media (min-width: 800px) and (max-width: 900px) and (min-height: 1100px) {
+  @media (min-width: 640px) and (max-width: 900px) {
+    .close {
+      width: var(--close-tablet-width);
+      height: var(--close-tablet-height);
+    }
+
+    .close span {
+      padding-right: 10px;
+      font-size: 9px;
+    }
+
+    .tab.mobile {
+      display: none;
+    }
+
+    .tab.tablet {
+      display: block;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 900px) and (min-height: 1024px) {
     .content.player-docked {
       bottom: 36px;
     }

@@ -151,6 +151,8 @@
   --pager-paddle-width: 18px;
   --pager-paddle-height: 116px;
   --pager-paddle-hit-extension: 6px;
+  --pager-paddle-offset-extra: 20px;
+  --pager-paddle-edge-inset: 2px;
 
   --title-size: clamp(16px, 2.5vw, 22px);
   --title-width: calc(var(--title-size) * 20 + 19px);
@@ -184,7 +186,7 @@
   }
 }
 
-@media (max-width: 639px) {
+@media (max-width: 900px) {
   :root {
     --pager-paddle-offset-extra: 12px;
   }
@@ -237,12 +239,12 @@
 
 @media (min-width: 640px) and (max-width: 900px) and (min-height: 700px) {
   :root {
-    --panel-heading: 18px;
-    --panel-sub: 12px;
+    --panel-heading: 19px;
+    --panel-sub: 13px;
     --panel-meta: 10px;
-    --panel-narrative: 10px;
+    --panel-narrative: 11px;
     --panel-chip: 9px;
-    --panel-input: 12px;
+    --panel-input: 13px;
   }
 }
 

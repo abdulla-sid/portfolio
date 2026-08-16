@@ -171,8 +171,22 @@
     }
   }
 
-  @media (min-width: 800px) and (max-width: 900px) and (min-height: 1100px) {
+  @media (min-width: 768px) and (max-width: 900px) and (min-height: 1024px) {
+    .detail :global(.note.strip) {
+      --note-strip-padding: 20px 20px 18px;
+      --note-strip-heading-gap: 14px;
+      --note-strip-value-size: 11px;
+    }
+
     .deck {
+      --deck-padding: 20px;
+      --deck-gap: 18px;
+      --deck-screen-min-height: 76px;
+      --deck-screen-padding: 14px 18px;
+      --deck-screen-gap: 28px;
+      --deck-preset-size: 40px;
+      --transport-size: 38px;
+      --transport-big-size: 50px;
       display: block;
       margin-top: 20px;
     }

@@ -105,6 +105,28 @@ async function openAboutOnMobile(page) {
   await waitForWindowSettled(page);
 }
 
+async function phoneChromeMetrics(page) {
+  return page.evaluate(() => {
+    const close = document.querySelector('button[aria-label="Close"]');
+    const closeBox = close.getBoundingClientRect();
+    const edge = close.querySelector(".tab.mobile .edge").getAttribute("d");
+    const horizontalPoints = [...edge.matchAll(/H(\d+)/g)].map((match) =>
+      Number.parseInt(match[1], 10),
+    );
+    const diagonalEnd = horizontalPoints.at(-2);
+    const labelStart = close.querySelector("span").getBoundingClientRect().left;
+
+    return {
+      closeWidth: Math.round(closeBox.width),
+      closeHeight: Math.round(closeBox.height),
+      diagonalLabelGap: Math.round(labelStart - closeBox.left - diagonalEnd),
+      titleSize: Number.parseFloat(
+        getComputedStyle(document.querySelector("#title")).fontSize,
+      ),
+    };
+  });
+}
+
 let browser;
 let server;
 
@@ -232,6 +254,61 @@ try {
   assert.equal(await page.$("vite-error-overlay"), null);
   assert.deepEqual(runtimeErrors, []);
 
+  for (const viewport of [
+    { width: 320, height: 800 },
+    { width: 344, height: 882 },
+    { width: 360, height: 640 },
+    { width: 375, height: 667 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewport(viewport);
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await openAboutOnMobile(page);
+    assert.deepEqual(await phoneChromeMetrics(page), {
+      closeWidth: 68,
+      closeHeight: 16,
+      diagonalLabelGap: 3,
+      titleSize: 9,
+    });
+  }
+
+  await page.setViewport({ width: 375, height: 667 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  assert.equal(
+    await page.evaluate(async () => {
+      const body = document.querySelector(".body");
+      body.scrollTop = body.scrollHeight;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return (
+        document.querySelector(".note.strip").getBoundingClientRect().bottom <=
+        body.getBoundingClientRect().bottom + 1
+      );
+    }),
+    true,
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "PROJECTS");
+  await page.waitForSelector('button[aria-label="Next project"]', {
+    visible: true,
+  });
+  await page.click('button[aria-label="Next project"]');
+  assert.equal(
+    await page.evaluate(async () => {
+      const narrative = document.querySelector(".narrative");
+      narrative.scrollTop = narrative.scrollHeight;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const lastParagraph = narrative.querySelector("p:last-child");
+      return (
+        lastParagraph.getBoundingClientRect().bottom <=
+        narrative.getBoundingClientRect().bottom + 1
+      );
+    }),
+    true,
+  );
+
   await page.click(CLOSE_BUTTON);
   await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
   await page.click('button[aria-label="Toggle navigation"]');
@@ -291,14 +368,24 @@ try {
         .getBoundingClientRect();
       const narrative = document.querySelector(".page").getBoundingClientRect();
       const map = document.querySelector(".map-slot").getBoundingClientRect();
+      const body = document.querySelector(".body").getBoundingClientRect();
       return {
+        leftOuterInset: Math.round(prev.left - body.left),
+        rightOuterInset: Math.round(body.right - next.right),
         leftGap: Math.round(narrative.left - prev.right),
         rightGap: Math.round(next.left - Math.max(narrative.right, map.right)),
         paddleWidth: Math.round(prev.width),
         paddleHeight: Math.round(prev.height),
       };
     }),
-    { leftGap: 10, rightGap: 10, paddleWidth: 14, paddleHeight: 116 },
+    {
+      leftOuterInset: 2,
+      rightOuterInset: 2,
+      leftGap: 10,
+      rightGap: 10,
+      paddleWidth: 14,
+      paddleHeight: 116,
+    },
   );
   await page.click(CLOSE_BUTTON);
   await page.waitForSelector('[role="dialog"]', { hidden: true });
@@ -462,6 +549,7 @@ try {
   await page.click('button[aria-label="Toggle navigation"]');
   await clickMenuItem(page, "PROJECTS");
   await page.waitForSelector(".paddle", { visible: true });
+  await waitForWindowSettled(page);
   assert.deepEqual(
     await page.evaluate(() => {
       const root = getComputedStyle(document.documentElement);
@@ -503,6 +591,67 @@ try {
       };
     }),
     { contentBottom: "36px", deckMeetsBodyBottom: true },
+  );
+
+  await page.setViewport({ width: 768, height: 1024 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnMobile(page);
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const note = document
+        .querySelector(".note.strip")
+        .getBoundingClientRect();
+      const deck = document.querySelector(".deck").getBoundingClientRect();
+      const dock = document.querySelector('[data-widget-id="player"]');
+      const close = document
+        .querySelector('button[aria-label="Close"]')
+        .getBoundingClientRect();
+      return {
+        titleSize: Number.parseFloat(
+          getComputedStyle(document.querySelector("#title")).fontSize,
+        ),
+        headingSize: Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--panel-heading",
+          ),
+        ),
+        narrativeSize: Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--panel-narrative",
+          ),
+        ),
+        noteHeight: Math.round(note.height),
+        deckHeight: Math.round(deck.height),
+        dockHidden: getComputedStyle(dock).display === "none",
+        closeWidth: Math.round(close.width),
+        closeHeight: Math.round(close.height),
+      };
+    }),
+    {
+      titleSize: 13,
+      headingSize: 19,
+      narrativeSize: 11,
+      noteHeight: 95,
+      deckHeight: 248,
+      dockHidden: true,
+      closeWidth: 100,
+      closeHeight: 24,
+    },
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await page.click('button[aria-label="Toggle navigation"]');
+  await clickMenuItem(page, "PROJECTS");
+  await page.waitForSelector(".paddle", { visible: true });
+  assert.equal(
+    await page.evaluate(() => {
+      const prev = document
+        .querySelector(".paddle.prev")
+        .getBoundingClientRect();
+      const content = document.querySelector(".page").getBoundingClientRect();
+      return Math.round(content.left - prev.right);
+    }),
+    12,
   );
 
   await page.setViewport({ width: 1024, height: 768 });
@@ -563,6 +712,44 @@ try {
       beforeDrag,
     ),
     true,
+  );
+
+  await page.setViewport({ width: 1512, height: 982 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await openAboutOnDesktop(page);
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await clickMenuItem(page, "PROJECTS");
+  await page.waitForSelector(".paddle", { visible: true });
+  await waitForWindowSettled(page);
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const prev = document
+        .querySelector(".paddle.prev")
+        .getBoundingClientRect();
+      const next = document
+        .querySelector(".paddle.next")
+        .getBoundingClientRect();
+      const content = document.querySelector(".page").getBoundingClientRect();
+      const body = document.querySelector(".body").getBoundingClientRect();
+      const close = document
+        .querySelector('button[aria-label="Close"]')
+        .getBoundingClientRect();
+      return {
+        leftOuterInset: Math.round(prev.left - body.left),
+        rightOuterInset: Math.round(body.right - next.right),
+        paddleClearance: Math.round(content.left - prev.right),
+        closeWidth: Math.round(close.width),
+        closeHeight: Math.round(close.height),
+      };
+    }),
+    {
+      leftOuterInset: 2,
+      rightOuterInset: 2,
+      paddleClearance: 20,
+      closeWidth: 108,
+      closeHeight: 27,
+    },
   );
 
   process.stdout.write(

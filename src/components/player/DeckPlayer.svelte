@@ -220,21 +220,21 @@
 
   .chassis {
     --meter-unit: 16px;
-    padding: 16px;
+    padding: var(--deck-padding, 16px);
     box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: var(--deck-gap, 14px);
   }
 
   .screen {
     position: relative;
-    min-height: 60px;
-    padding: 10px 14px;
+    min-height: var(--deck-screen-min-height, 60px);
+    padding: var(--deck-screen-padding, 10px 14px);
     background: var(--ui-ink);
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: var(--deck-screen-gap, 24px);
     overflow: hidden;
   }
 
@@ -473,7 +473,7 @@
   }
 
   .presets {
-    --preset-size: 36px;
+    --preset-size: var(--deck-preset-size, 36px);
     --preset-gap: 6px;
     list-style: none;
     display: flex;

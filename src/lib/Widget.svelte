@@ -283,7 +283,7 @@
     }
   }
 
-  @media (min-width: 800px) and (max-width: 900px) and (min-height: 1100px) {
+  @media (min-width: 768px) and (max-width: 900px) and (min-height: 1024px) {
     .widget[data-widget-id="player"] {
       display: none;
     }

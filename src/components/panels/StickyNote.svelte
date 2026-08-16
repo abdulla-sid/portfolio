@@ -124,11 +124,11 @@
   }
 
   .strip .content {
-    padding: 16px 16px 14px;
+    padding: var(--note-strip-padding, 16px 16px 14px);
   }
 
   .strip .heading {
-    margin-bottom: 12px;
+    margin-bottom: var(--note-strip-heading-gap, 12px);
   }
 
   .strip dl {
@@ -144,7 +144,7 @@
   }
 
   .strip dd {
-    font-size: 9px;
+    font-size: var(--note-strip-value-size, 9px);
   }
 
   @media (max-width: 499px) {
