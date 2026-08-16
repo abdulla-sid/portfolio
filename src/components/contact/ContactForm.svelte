@@ -18,7 +18,7 @@
 
   const CHALLENGE_TEXT: Record<ChallengeState, string> = {
     waiting: "OPENING SIGNAL",
-    unavailable: "NO SIGNAL — CANNOT SEND",
+    unavailable: "NO SIGNAL — CANNOT\u00a0SEND",
     failed: "SIGNAL LOST — TRY AGAIN",
   };
 
@@ -151,6 +151,16 @@
     void renderChallenge();
   }
 
+  function keepMessageEndVisible(event: Event) {
+    const field = event.currentTarget as HTMLTextAreaElement;
+    if (field.selectionEnd !== field.value.length) return;
+    requestAnimationFrame(() => {
+      if (mounted && document.activeElement === field) {
+        field.scrollTop = field.scrollHeight;
+      }
+    });
+  }
+
   onMount(() => void renderChallenge());
 
   onDestroy(() => {
@@ -218,7 +228,8 @@
         name="message"
         rows="3"
         maxlength={MESSAGE_LIMIT}
-        bind:value={message}></textarea>
+        bind:value={message}
+        oninput={keepMessageEndVisible}></textarea>
     </div>
 
     <label class="website" aria-hidden="true">
@@ -354,6 +365,7 @@
     padding: 14px 16px;
     background: var(--contact-surface);
     resize: none;
+    scroll-padding-block: 10px;
   }
 
   input:focus-visible,
@@ -486,6 +498,7 @@
 
     form {
       grid-template-rows: auto auto minmax(72px, 120px) auto auto;
+      align-content: space-between;
     }
 
     .pair {
@@ -537,6 +550,11 @@
     .rail button {
       width: auto;
       padding-inline: 16px;
+    }
+
+    form {
+      grid-template-rows: auto auto minmax(72px, 1fr) auto auto;
+      align-content: stretch;
     }
   }
 
@@ -593,6 +611,25 @@
     textarea {
       min-height: 64px;
       padding: 7px 8px;
+    }
+  }
+
+  @media (max-width: 499px) {
+    .rail {
+      align-items: center;
+      flex-direction: row;
+      flex-wrap: nowrap;
+    }
+
+    .signal {
+      flex: 1;
+      white-space: normal;
+    }
+
+    .rail button {
+      flex: none;
+      width: auto;
+      padding-inline: 10px;
     }
   }
 
