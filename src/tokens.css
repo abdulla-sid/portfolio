@@ -170,6 +170,7 @@
 @media (min-width: 901px) and (max-height: 850px) {
   :root {
     --title-size: clamp(14px, 1.4vw, 16px);
+    --panel-narrative: var(--panel-sub);
   }
 }
 

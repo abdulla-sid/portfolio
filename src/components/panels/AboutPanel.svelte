@@ -214,13 +214,10 @@
     }
 
     .detail {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(250px, 0.9fr);
-      gap: 18px;
+      display: block;
     }
 
     .text {
-      font-size: 8px;
       line-height: 1.55;
     }
 
@@ -229,9 +226,16 @@
     }
 
     .deck {
-      align-self: end;
-      clear: none;
-      margin-top: 0;
+      --deck-padding: 10px;
+      --deck-gap: 8px;
+      --deck-screen-min-height: 40px;
+      --deck-screen-padding: 6px 10px;
+      --deck-screen-gap: 14px;
+      --deck-preset-size: 26px;
+      --transport-size: 26px;
+      --transport-big-size: 34px;
+      clear: both;
+      margin-top: 12px;
     }
   }
 

@@ -670,9 +670,9 @@
     }
   }
 
-  @media (min-width: 901px) and (max-height: 640px) {
+  @media (min-width: 901px) and (max-height: 740px) {
     .dave-widget {
-      --dave-scale: 1.55px;
+      --dave-scale: clamp(1px, calc(0.32vh - 0.7px), 1.55px);
       --ann-box-width: 148px;
     }
   }
