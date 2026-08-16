@@ -23,7 +23,6 @@
 
   interface Props {
     focus?: MapFocus | null;
-
     selectedId?: string | null;
   }
 
@@ -497,10 +496,6 @@
     cursor: pointer;
   }
 
-  /*
-   * Both sit at 6px, so the link is 78x6 and the toggle 18x6 — a few pixels of
-   * target on a touch screen. Grow the hit areas, leave the type where it is.
-   */
   .attribution a,
   .attribution button {
     position: relative;

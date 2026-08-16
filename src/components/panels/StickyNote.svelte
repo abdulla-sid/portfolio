@@ -12,6 +12,12 @@
     { label: "PAINTING", value: "badly" },
   ];
 
+  interface Props {
+    strip?: boolean;
+  }
+
+  let { strip = false }: Props = $props();
+
   let contentHeight = $state(0);
 
   const paperHeight = $derived(
@@ -22,12 +28,15 @@
 
 <aside
   class="note"
+  class:strip
   style:--note-width="{paper.width * PAPER_SCALE}px"
   style:--note-height="{paper.height * PAPER_SCALE}px"
 >
-  <svg class="paper" viewBox={paper.viewBox} aria-hidden="true">
-    <path d={paper.path}></path>
-  </svg>
+  {#if !strip}
+    <svg class="paper" viewBox={paper.viewBox} aria-hidden="true">
+      <path d={paper.path}></path>
+    </svg>
+  {/if}
   <span class="tape" aria-hidden="true"></span>
   <div class="content" bind:clientHeight={contentHeight}>
     <p class="heading">NOTE TO SELF</p>
@@ -92,5 +101,53 @@
   dd {
     font-size: 10px;
     line-height: 1.5;
+  }
+
+  .strip {
+    width: auto;
+    height: auto;
+    background: var(--note-paper);
+  }
+
+  .strip .tape {
+    left: 20px;
+  }
+
+  .strip .content {
+    padding: 16px 16px 14px;
+  }
+
+  .strip .heading {
+    margin-bottom: 12px;
+  }
+
+  .strip dl {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-template-rows: auto auto;
+    justify-content: space-between;
+    gap: 6px 14px;
+  }
+
+  .strip dd {
+    font-size: 9px;
+  }
+
+  @media (max-width: 499px) {
+    .strip .content {
+      padding: 12px 12px 10px;
+    }
+
+    .strip .heading {
+      margin-bottom: 8px;
+    }
+
+    .strip dl {
+      gap: 4px 10px;
+    }
+
+    .strip dd {
+      font-size: 8px;
+    }
   }
 </style>

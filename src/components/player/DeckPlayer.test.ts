@@ -54,7 +54,6 @@ describe("DeckPlayer", () => {
     expect(presets[0].getAttribute("aria-current")).toBe("true");
     expect(presets[1].getAttribute("aria-current")).toBeNull();
 
-    // now-playing stays on screen — selecting a track is not a mode switch
     await fireEvent.click(presets[0]);
     expect(container.querySelector(".vu")).not.toBeNull();
     expect(ttl(container)).toContain("Song A");
@@ -90,7 +89,6 @@ describe("DeckPlayer", () => {
     );
     expect(longer.tracks).toHaveLength(PRESET_LIMIT + 4);
 
-    // a track past the preset row is still reachable through the transport
     const beyond = PRESET_LIMIT + 2;
     longer.selectTrack(beyond);
     await waitFor(() =>
@@ -107,7 +105,6 @@ describe("DeckPlayer", () => {
 
     const seekSpy = vi.spyOn(controller, "seek");
 
-    // a click with no pointer behind it reports clientX 0 and must not seek
     await fireEvent.click(seek, { detail: 0, clientX: 0 });
     expect(seekSpy).not.toHaveBeenCalled();
 

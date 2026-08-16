@@ -273,6 +273,12 @@
     }
   }
 
+  @media (min-width: 800px) and (max-width: 900px) and (min-height: 1100px) {
+    .widget[data-widget-id="player"] {
+      display: none;
+    }
+  }
+
   @media (max-width: 900px) {
     .widget.mobile-hidden {
       display: none;

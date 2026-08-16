@@ -24,6 +24,7 @@
         want me to try in the contact menu!
       </p>
     </div>
+    <StickyNote strip />
     <div class="deck"><DeckPlayer /></div>
   </div>
 </div>
@@ -32,6 +33,7 @@
   .about {
     --identity-width: 240px;
     --gutter: 24px;
+    --measure: 522px;
     display: grid;
     grid-template-columns: var(--identity-width) 1fr;
     gap: var(--gutter);
@@ -61,8 +63,8 @@
   }
 
   .text {
-    max-width: 58ch;
-    font-size: 9px;
+    max-width: var(--measure);
+    font-size: var(--panel-narrative);
     line-height: 1.8;
   }
 
@@ -75,8 +77,13 @@
     min-width: 0;
   }
 
+  .detail :global(.note.strip) {
+    display: none;
+  }
+
   @media (max-width: 1259px), (max-height: 850px) {
     .about {
+      --measure: 576px;
       display: block;
     }
 
@@ -99,8 +106,7 @@
     }
 
     .text {
-      max-width: 72ch;
-      font-size: 8px;
+      font-size: var(--panel-narrative);
     }
 
     .text p + p {
@@ -119,14 +125,64 @@
       margin: 2px 16px 12px 0;
     }
 
-    /*
-     * The docked player takes over here. Hiding on width alone is what keeps
-     * exactly one of the two on screen: the old rule also required a short
-     * viewport, so a tall phone or a portrait tablet showed the deck and the
-     * dock at once, and a short wide laptop showed neither.
-     */
     .deck {
       display: none;
+    }
+  }
+
+  @media (min-width: 901px) and (max-width: 1259px) and (min-height: 1000px) {
+    .about {
+      position: relative;
+    }
+
+    .deck {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin-top: 0;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .about {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .photo {
+      float: none;
+    }
+
+    .detail {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .detail :global(.note.strip) {
+      display: block;
+      margin-top: auto;
+      padding-top: 20px;
+    }
+  }
+
+  @media (min-width: 800px) and (max-width: 900px) and (min-height: 1100px) {
+    .deck {
+      display: block;
+      margin-top: 20px;
+    }
+  }
+
+  @media (min-width: 540px) and (max-width: 900px) and (min-height: 700px) {
+    .about {
+      --measure: 720px;
+    }
+
+    .photo {
+      width: 200px;
+      margin: 2px 24px 16px 0;
     }
   }
 </style>
