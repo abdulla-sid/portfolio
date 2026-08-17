@@ -714,6 +714,110 @@ try {
     true,
   );
 
+  await page.setViewport({ width: 1280, height: 720 });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const dave = document.querySelector(".dave-widget");
+      const parts = [dave, ...dave.querySelectorAll(".dais, .figure")].map(
+        (node) => node.getBoundingClientRect(),
+      );
+      const visual = {
+        left: Math.min(...parts.map((box) => box.left)),
+        right: Math.max(...parts.map((box) => box.right)),
+        top: Math.min(...parts.map((box) => box.top)),
+        bottom: Math.max(...parts.map((box) => box.bottom)),
+      };
+      const linkedin = [...document.querySelectorAll("footer a")]
+        .at(-1)
+        .getBoundingClientRect();
+      return {
+        scale: Number((dave.getBoundingClientRect().width / 180).toFixed(2)),
+        overlapsLinkedin:
+          visual.left < linkedin.right &&
+          visual.right > linkedin.left &&
+          visual.top < linkedin.bottom &&
+          visual.bottom > linkedin.top,
+        clearsFooterByAtLeast24: linkedin.top - visual.bottom >= 24,
+      };
+    }),
+    { scale: 1.55, overlapsLinkedin: false, clearsFooterByAtLeast24: true },
+  );
+  await openAboutOnDesktop(page);
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const detail = document.querySelector(".detail");
+      const text = document.querySelector(".text").getBoundingClientRect();
+      const deck = document.querySelector(".deck").getBoundingClientRect();
+      return {
+        detailDisplay: getComputedStyle(detail).display,
+        textSize: Number.parseFloat(
+          getComputedStyle(document.querySelector(".text")).fontSize,
+        ),
+        deckFollowsText: deck.top >= text.bottom + 10,
+        deckUsesDetailWidth:
+          Math.abs(deck.width - detail.getBoundingClientRect().width) < 1,
+        deckIsCompact: deck.height <= 152,
+      };
+    }),
+    {
+      detailDisplay: "block",
+      textSize: 10,
+      deckFollowsText: true,
+      deckUsesDetailWidth: true,
+      deckIsCompact: true,
+    },
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector(ABOUT_DIALOG, { hidden: true });
+  await clickMenuItem(page, "PROJECTS");
+  await page.waitForSelector(".narrative", { visible: true });
+  assert.equal(
+    await page.$eval(".narrative", (element) =>
+      Number.parseFloat(getComputedStyle(element).fontSize),
+    ),
+    10,
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector('[role="dialog"]', { hidden: true });
+  await clickMenuItem(page, "EXPERIENCE");
+  await page.waitForSelector(".map-slot", { visible: true });
+  await waitForWindowSettled(page);
+  assert.deepEqual(
+    await page.evaluate(() => {
+      const body = document.querySelector(".body").getBoundingClientRect();
+      const map = document.querySelector(".map-slot").getBoundingClientRect();
+      const mapAreaShare =
+        (map.width * map.height) / (body.width * body.height);
+      return {
+        narrativeSize: Number.parseFloat(
+          getComputedStyle(document.querySelector(".narrative")).fontSize,
+        ),
+        panelUsesRightGutter: body.width >= 550,
+        mapWidthAtLeast240: map.width >= 240,
+        mapFillsAvailableHeight: map.height > map.width,
+        mapUsesAtLeastThirdOfPanel: mapAreaShare >= 1 / 3,
+      };
+    }),
+    {
+      narrativeSize: 10,
+      panelUsesRightGutter: true,
+      mapWidthAtLeast240: true,
+      mapFillsAvailableHeight: true,
+      mapUsesAtLeastThirdOfPanel: true,
+    },
+  );
+  await page.click(CLOSE_BUTTON);
+  await page.waitForSelector('[role="dialog"]', { hidden: true });
+  await clickMenuItem(page, "CONTACT ME");
+  await page.waitForSelector(".contact .lede", { visible: true });
+  assert.equal(
+    await page.$eval(".contact .lede", (element) =>
+      Number.parseFloat(getComputedStyle(element).fontSize),
+    ),
+    10,
+  );
+
   await page.setViewport({ width: 1512, height: 982 });
   await page.goto(url, { waitUntil: "domcontentloaded" });
   await openAboutOnDesktop(page);

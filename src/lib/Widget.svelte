@@ -260,6 +260,17 @@
     }
   }
 
+  @media (min-width: 1201px) and (max-width: 1865px) and (max-height: 850px) {
+    .widget[data-widget-id="menu-window"] {
+      --menu-window-right: min(var(--page-margin), 40px);
+      --menu-window-width: clamp(
+        460px,
+        calc(100vw - var(--menu-window-reserve) - var(--menu-window-right)),
+        var(--menu-window-max-width)
+      );
+    }
+  }
+
   @media (min-width: 901px) and (max-width: 1200px) and (max-height: 850px) {
     .widget[data-widget-id="menu-window"] {
       --menu-window-left: var(--menu-window-reserve);

@@ -226,4 +226,16 @@
       grid-template-rows: minmax(100px, 3fr) minmax(90px, 2fr) auto;
     }
   }
+
+  @media (min-width: 1101px) and (max-height: 740px) {
+    .split {
+      --map-share: 0.72;
+      --map-scale: 1;
+    }
+
+    .map-slot {
+      align-self: stretch;
+      aspect-ratio: auto;
+    }
+  }
 </style>
