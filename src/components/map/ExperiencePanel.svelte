@@ -97,6 +97,7 @@
     display: flex;
     grid-area: text;
     flex-direction: column;
+    justify-content: center;
     min-width: 0;
     min-height: 0;
     color: var(--text-primary);
@@ -115,24 +116,24 @@
   }
 
   .org {
-    margin-top: 6px;
+    margin-top: 8px;
     color: var(--ui-accent);
     font-size: var(--panel-sub);
     line-height: 1.6;
   }
 
   .dates {
-    margin-top: 6px;
+    margin-top: 8px;
     font-size: var(--panel-meta);
     line-height: 1.6;
     opacity: 0.72;
   }
 
   .narrative {
-    flex: 1;
+    flex: 0 1 auto;
     min-height: 0;
     margin-top: 18px;
-    padding-right: 8px;
+    padding: 0 8px 10px 0;
     overflow-y: auto;
     overflow-wrap: break-word;
     font-size: var(--panel-narrative);
