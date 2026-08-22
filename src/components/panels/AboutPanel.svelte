@@ -2,15 +2,89 @@
   import { aboutPhoto } from "./aboutPhoto";
   import DeckPlayer from "../player/DeckPlayer.svelte";
   import StickyNote from "./StickyNote.svelte";
+
+  const ROW_GAP = 48;
+  const MIN_IDENTITY = 200;
+  const MAX_IDENTITY = 460;
+  const ROOMY =
+    "(min-width: 1400px) and (max-width: 1999px) and (min-height: 900px)";
+
+  let about: HTMLElement | undefined = $state();
+  let deck: HTMLElement | undefined = $state();
+  let copy: HTMLElement | undefined = $state();
+  let identityWidth = $state(0);
+  let deckHeight = $state(0);
+  let rowGap = $state(0);
+
+  $effect(() => {
+    if (!about || !deck || !copy) return;
+    const grid = about;
+    const player = deck;
+    const prose = copy;
+    const roomy = window.matchMedia(ROOMY);
+    let frame = 0;
+
+    const measure = () => {
+      frame = 0;
+      if (!roomy.matches) {
+        identityWidth = 0;
+        deckHeight = 0;
+        rowGap = 0;
+        return;
+      }
+      const available = grid.clientHeight;
+      const height = Math.round(player.getBoundingClientRect().height);
+      const square = Math.round(
+        Math.min(
+          MAX_IDENTITY,
+          Math.max(MIN_IDENTITY, available - ROW_GAP - height),
+        ),
+      );
+      const upper = Math.max(
+        square,
+        Math.ceil(prose.getBoundingClientRect().height),
+      );
+      const gap = Math.max(0, Math.min(ROW_GAP, available - upper - height));
+      if (height !== deckHeight) deckHeight = height;
+      if (square !== identityWidth) identityWidth = square;
+      if (gap !== rowGap) rowGap = gap;
+    };
+
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(measure);
+    };
+
+    measure();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(grid);
+    observer.observe(player);
+    observer.observe(prose);
+    roomy.addEventListener("change", schedule);
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      observer.disconnect();
+      roomy.removeEventListener("change", schedule);
+    };
+  });
 </script>
 
-<div class="about">
+<div
+  class="about"
+  bind:this={about}
+  style:--identity-width={identityWidth ? `${identityWidth}px` : null}
+  style:--about-row-gap={rowGap ? `${rowGap}px` : null}
+>
   <div class="identity">
     <img class="photo" src={aboutPhoto} alt="Portrait of me" />
-    <StickyNote />
+    <StickyNote
+      width={identityWidth || undefined}
+      minHeight={deckHeight || undefined}
+    />
   </div>
   <div class="detail">
-    <div class="text">
+    <div class="text" bind:this={copy}>
       <p>
         Tech guy, wannabe artist. Full-stack at Carbonteq, mostly TypeScript. I
         spend as much time deciding what to build as building it, and most of my
@@ -24,7 +98,7 @@
       </p>
     </div>
     <StickyNote strip />
-    <div class="deck"><DeckPlayer /></div>
+    <div class="deck" bind:this={deck}><DeckPlayer /></div>
   </div>
 </div>
 
@@ -255,6 +329,42 @@
 
     .deck {
       margin-top: 9px;
+    }
+  }
+
+  @media (min-width: 1400px) and (max-width: 1999px) and (min-height: 900px) {
+    .about {
+      --gutter: 48px;
+      grid-template-rows: auto auto;
+      align-content: space-between;
+      column-gap: var(--gutter);
+      row-gap: var(--about-row-gap, var(--gutter));
+    }
+
+    .identity,
+    .detail {
+      display: contents;
+    }
+
+    .photo {
+      grid-area: 1 / 1;
+      align-self: start;
+    }
+
+    .text {
+      grid-area: 1 / 2;
+      align-self: start;
+    }
+
+    .identity :global(.note) {
+      grid-area: 2 / 1;
+      align-self: end;
+    }
+
+    .deck {
+      grid-area: 2 / 2;
+      align-self: end;
+      margin-top: 0;
     }
   }
 

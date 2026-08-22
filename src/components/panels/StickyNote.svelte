@@ -14,16 +14,21 @@
 
   interface Props {
     strip?: boolean;
+    width?: number;
+    minHeight?: number;
   }
 
-  let { strip = false }: Props = $props();
+  let { strip = false, width, minHeight }: Props = $props();
 
   let contentHeight = $state(0);
 
+  const paperWidth = $derived(
+    width ? Math.round(width / PAPER_SCALE) : PAPER_WIDTH,
+  );
   const paperHeight = $derived(
     Math.max(PAPER_MIN_HEIGHT, Math.ceil(contentHeight / PAPER_SCALE)),
   );
-  const paper = $derived(steppedCorner(PAPER_WIDTH, paperHeight, PAPER_CORNER));
+  const paper = $derived(steppedCorner(paperWidth, paperHeight, PAPER_CORNER));
 </script>
 
 <aside
@@ -38,7 +43,11 @@
     </svg>
   {/if}
   <span class="tape" aria-hidden="true"></span>
-  <div class="content" bind:clientHeight={contentHeight}>
+  <div
+    class="content"
+    style:min-height={minHeight ? `${minHeight}px` : null}
+    bind:clientHeight={contentHeight}
+  >
     <p class="heading">NOTE TO SELF</p>
     <dl>
       {#each LINES as line (line.label)}
@@ -105,7 +114,7 @@
   }
 
   dd {
-    font-size: 10px;
+    font-size: var(--panel-narrative);
     line-height: 1.5;
   }
 
