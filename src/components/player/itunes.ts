@@ -14,10 +14,10 @@ export const PLAYLIST: PlaylistEntry[] = [
   { query: "detonate charli xcx", trackId: 1513162584 },
   { query: "you lose 8-bit magdalena bay", trackId: 1636364834 },
   { query: "ipod touch ninajirachi", trackId: 1817553617 },
-  { query: "sober to death car seat headrest", trackId: 1586483452 },
+  { query: "drunk drivers car seat headrest", trackId: 1589252486 },
   { query: "all the time the strokes" },
   { query: "under pressure queen" },
-  { query: "instant crush daft punk", trackId: 617154362 },
+  { query: "feel good inc gorillaz", trackId: 850583586 },
   { query: "not strong enough boygenius", trackId: 1666138718 },
 ];
 
