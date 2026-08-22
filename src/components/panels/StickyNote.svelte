@@ -90,15 +90,13 @@
   }
 
   dl {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 10px;
   }
 
   .fact {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 10px;
+    display: contents;
   }
 
   dt {

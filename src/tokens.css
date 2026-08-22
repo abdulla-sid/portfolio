@@ -94,6 +94,7 @@
   --player-meter: var(--color-player-meter);
   --player-channel: var(--color-player-channel);
   --player-meter-edge: var(--color-player-meter-edge);
+  --player-meter-hot: var(--color-grid);
   --player-scanline: var(--color-accent-a06);
 
   --note-paper: var(--ui-accent);

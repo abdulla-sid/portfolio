@@ -220,6 +220,7 @@
 
   .chassis {
     --meter-unit: 16px;
+    --meter-hot-from: 6;
     padding: var(--deck-padding, 16px);
     box-shadow: inset 0 0 0 2px var(--ui-accent-deep);
     display: flex;
@@ -299,6 +300,10 @@
   .lvl {
     position: absolute;
     inset: 0;
+  }
+
+  .ghost {
+    color: var(--player-meter-edge);
     background-image: repeating-linear-gradient(
       90deg,
       currentColor 0 calc(var(--meter-unit) - 4px),
@@ -306,20 +311,27 @@
     );
   }
 
-  .ghost {
-    color: var(--player-meter-edge);
-  }
-
   .lvl {
-    color: var(--ui-accent);
+    --meter-redline: calc(var(--meter-hot-from) * var(--meter-unit));
     width: calc(var(--band-idle) * var(--meter-unit));
+    background-image: linear-gradient(
+      90deg,
+      var(--ui-accent) 0 var(--meter-redline),
+      var(--player-meter-hot) var(--meter-redline)
+    );
+    mask-image: repeating-linear-gradient(
+      90deg,
+      #000 0 calc(var(--meter-unit) - 4px),
+      transparent calc(var(--meter-unit) - 4px) var(--meter-unit)
+    );
     animation: level var(--band-duration) steps(6, end) var(--band-delay)
       infinite alternate;
     animation-play-state: paused;
   }
 
   .is-buffering .lvl {
-    color: var(--text-muted);
+    background-image: none;
+    background-color: var(--text-muted);
   }
 
   .is-playing:not(.is-buffering) .lvl {
