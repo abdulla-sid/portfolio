@@ -37,7 +37,7 @@
     color: var(--ui-highlight);
     font-size: var(--panel-heading);
     line-height: 1.6;
-    max-width: 42ch;
+    max-width: 64ch;
   }
 
   .form-failed {
