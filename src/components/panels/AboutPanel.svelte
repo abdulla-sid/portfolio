@@ -12,16 +12,15 @@
   <div class="detail">
     <div class="text">
       <p>
-        Tech guy, wannabe artist. I'm currently working as a Software Engineer
-        in Carbonteq, wrestling with the dynamic world of Typescript and Web
-        Development. I'm drawn to work where the answers aren't obvious and the
-        rewards are real.
+        Tech guy, wannabe artist. Full-stack at Carbonteq, mostly TypeScript. I
+        spend as much time deciding what to build as building it, and most of my
+        free time on graphics and game engines.
       </p>
       <p>
-        Off the clock, I'm just a chill, performative guy who enjoys painting,
-        music, and going to overpriced coffee shops. Check out my current
-        playlist in this nifty iPod, and drop a few suggestions for what you
-        want me to try in the contact menu!
+        Off the clock I'm a chill, performative guy. I paint, sketch, skate, and
+        drink more coffee than my budget should let me. I also hand-placed every
+        pixel on this site. Click on the iPod for some of my favourite songs. If
+        you have any recommendations, send them to me through the contact menu.
       </p>
     </div>
     <StickyNote strip />
