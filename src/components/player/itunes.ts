@@ -14,9 +14,11 @@ export const PLAYLIST: PlaylistEntry[] = [
   { query: "detonate charli xcx", trackId: 1513162584 },
   { query: "you lose 8-bit magdalena bay", trackId: 1636364834 },
   { query: "ipod touch ninajirachi", trackId: 1817553617 },
-  { query: "hayloft 2 mother mother", trackId: 1594441149 },
+  { query: "sober to death car seat headrest", trackId: 1586483452 },
   { query: "all the time the strokes" },
   { query: "under pressure queen" },
+  { query: "instant crush daft punk", trackId: 617154362 },
+  { query: "not strong enough boygenius", trackId: 1666138718 },
 ];
 
 const LOOKUP = "https://itunes.apple.com/lookup?id=";
