@@ -229,6 +229,12 @@
     flex-direction: column;
   }
 
+  @media (min-width: 1400px) and (min-height: 900px) {
+    .content {
+      bottom: calc(48px * var(--hd-scale));
+    }
+  }
+
   .body {
     flex: 1;
     min-height: 0;
