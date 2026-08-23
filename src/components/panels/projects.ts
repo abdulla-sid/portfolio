@@ -21,7 +21,7 @@ export const PROJECTS: Project[] = [
     impact: "Used daily by 1,000+ medical staff across 8 counties.",
     narrative: [
       "Healthcare software for county correctional facilities. I’ve been on the backend since September 2025 and full stack since August 2026. What I own is the unglamorous middle: how carts get stocked and balanced, how an infirmary intake gets processed, how a controlled substance count reconciles at the end of a shift.",
-      "Controlled substances are the sharp edge. Hand counted, pre allocated, and they can’t ride the automatic reordering everything else uses. Getting that wrong is a regulatory problem rather than a bug, so most of my test writing lives there.",
+      "Controlled substances are the sharp edge. Hand counted, pre allocated, and they can’t ride the automatic reordering everything else uses. Getting it wrong is a regulatory problem rather than a bug, which meant guarding every path that could touch them and writing more test than feature to keep it that way.",
       "The rest is ordinary craft. Bulk imports that used to run a query per row now run one. Counts that disagreed with the list they were counting now agree. None of it is visible from the outside, which is the point.",
     ],
     stack: [
