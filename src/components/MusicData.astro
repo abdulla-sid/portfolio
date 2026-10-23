@@ -1,0 +1,8 @@
+---
+import { playlistPreviews } from '../lib/music/previews';
+
+const previews = await playlistPreviews();
+---
+
+<!-- The playlist's preview URLs, resolved once at build time, for lib/music/player.ts. -->
+<script is:inline type="application/json" id="music-previews" set:html={previews} />

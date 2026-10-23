@@ -1,13 +1,16 @@
 node_modules/
 dist/
+.astro/
+test-results/
+playwright-report/
+.DS_Store
+scripts/.bin/
 
 .env
 .env.*
 !.env.example
 .dev.vars
 .dev.vars.*
-
-scripts/.bin/
 
 .vscode/*
 !.vscode/extensions.json

@@ -1,3 +1,5 @@
+import { EMAIL_SHAPE, LIMITS } from '../../src/lib/contact/contact';
+
 interface ContactEnvironment {
   BREVO_API_KEY: string;
   CONTACT_RECIPIENT: string;
@@ -19,46 +21,41 @@ interface ContactPayload {
   website?: string;
 }
 
-const MESSAGE_LIMIT = 1000;
-const TRACK_LIMIT = 120;
-
-const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TURNSTILE_VERIFY =
-  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-const BREVO_SEND = "https://api.brevo.com/v3/smtp/email";
+const TURNSTILE_VERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const BREVO_SEND = 'https://api.brevo.com/v3/smtp/email';
 const BREVO_NAME_LIMIT = 70;
 
 function response(status: number, error?: string): Response {
   return Response.json(error ? { ok: false, error } : { ok: true }, {
     status,
     headers: {
-      "Cache-Control": "no-store",
-      "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
-      "Cross-Origin-Resource-Policy": "same-origin",
-      "Referrer-Policy": "no-referrer",
-      "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "DENY",
+      'Cache-Control': 'no-store',
+      'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+      'Cross-Origin-Resource-Policy': 'same-origin',
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
     },
   });
 }
 
 function normalizedPayload(value: unknown): ContactPayload | null {
-  if (!value || typeof value !== "object") return null;
+  if (!value || typeof value !== 'object') return null;
   const input = value as Record<string, unknown>;
   if (
-    typeof input.name !== "string" ||
-    typeof input.email !== "string" ||
-    typeof input.message !== "string" ||
-    typeof input.turnstileToken !== "string" ||
-    (input.track !== undefined && typeof input.track !== "string") ||
-    (input.website !== undefined && typeof input.website !== "string")
+    typeof input.name !== 'string' ||
+    typeof input.email !== 'string' ||
+    typeof input.message !== 'string' ||
+    typeof input.turnstileToken !== 'string' ||
+    (input.track !== undefined && typeof input.track !== 'string') ||
+    (input.website !== undefined && typeof input.website !== 'string')
   )
     return null;
 
   const payload = {
-    name: input.name.trim().replace(/[\r\n]+/g, " "),
+    name: input.name.trim().replace(/[\r\n]+/g, ' '),
     email: input.email.trim(),
-    track: input.track?.trim().replace(/[\r\n]+/g, " "),
+    track: input.track?.trim().replace(/[\r\n]+/g, ' '),
     message: input.message.trim(),
     turnstileToken: input.turnstileToken,
     website: input.website?.trim(),
@@ -66,12 +63,12 @@ function normalizedPayload(value: unknown): ContactPayload | null {
 
   if (
     !payload.name ||
-    payload.name.length > 100 ||
+    payload.name.length > LIMITS.name ||
     !EMAIL_SHAPE.test(payload.email) ||
-    payload.email.length > 254 ||
-    (payload.track?.length ?? 0) > TRACK_LIMIT ||
+    payload.email.length > LIMITS.email ||
+    (payload.track?.length ?? 0) > LIMITS.track ||
     !payload.message ||
-    payload.message.length > MESSAGE_LIMIT ||
+    payload.message.length > LIMITS.message ||
     !payload.turnstileToken ||
     payload.turnstileToken.length > 2048
   )
@@ -81,45 +78,35 @@ function normalizedPayload(value: unknown): ContactPayload | null {
 }
 
 function configured(env: ContactEnvironment): boolean {
-  return [
-    env.BREVO_API_KEY,
-    env.CONTACT_RECIPIENT,
-    env.CONTACT_SENDER,
-    env.TURNSTILE_SECRET_KEY,
-  ].every((value) => Boolean(value?.trim()));
+  return [env.BREVO_API_KEY, env.CONTACT_RECIPIENT, env.CONTACT_SENDER, env.TURNSTILE_SECRET_KEY].every(
+    (value) => Boolean(value?.trim()),
+  );
 }
 
-async function verifyTurnstile(
-  payload: ContactPayload,
-  request: Request,
-  env: ContactEnvironment,
-): Promise<boolean> {
+async function verifyTurnstile(token: string, request: Request, env: ContactEnvironment): Promise<boolean> {
   const body = new FormData();
-  body.set("secret", env.TURNSTILE_SECRET_KEY);
-  body.set("response", payload.turnstileToken);
-  const remoteIp = request.headers.get("CF-Connecting-IP");
-  if (remoteIp) body.set("remoteip", remoteIp);
+  body.set('secret', env.TURNSTILE_SECRET_KEY);
+  body.set('response', token);
+  const remoteIp = request.headers.get('CF-Connecting-IP');
+  if (remoteIp) body.set('remoteip', remoteIp);
 
-  const result = await fetch(TURNSTILE_VERIFY, { method: "POST", body });
+  const result = await fetch(TURNSTILE_VERIFY, { method: 'POST', body });
   if (!result.ok) return false;
   const verification = (await result.json()) as { success?: unknown };
   return verification.success === true;
 }
 
-async function deliver(
-  payload: ContactPayload,
-  env: ContactEnvironment,
-): Promise<boolean> {
+async function deliver(payload: ContactPayload, env: ContactEnvironment): Promise<boolean> {
   const result = await fetch(BREVO_SEND, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "api-key": env.BREVO_API_KEY,
-      "Content-Type": "application/json",
+      'api-key': env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       sender: {
         email: env.CONTACT_SENDER,
-        name: "Tiny Desktop",
+        name: 'Tiny Desktop',
       },
       to: [{ email: env.CONTACT_RECIPIENT }],
       replyTo: {
@@ -131,51 +118,44 @@ async function deliver(
         `Name: ${payload.name}`,
         `Email: ${payload.email}`,
         ...(payload.track ? [`Track: ${payload.track}`] : []),
-        "",
+        '',
         payload.message,
-      ].join("\n"),
+      ].join('\n'),
     }),
   });
   if (!result.ok) return false;
   const delivery = (await result.json()) as { messageId?: unknown };
-  return typeof delivery.messageId === "string";
+  return typeof delivery.messageId === 'string';
 }
 
-export async function onRequestPost({
-  request,
-  env,
-}: FunctionContext): Promise<Response> {
-  if (!configured(env)) return response(503, "CONTACT UNAVAILABLE");
+export async function onRequestPost({ request, env }: FunctionContext): Promise<Response> {
+  if (!configured(env)) return response(503, 'CONTACT UNAVAILABLE');
 
-  const origin = request.headers.get("Origin");
-  if (origin && origin !== new URL(request.url).origin)
-    return response(403, "REQUEST REJECTED");
+  const origin = request.headers.get('Origin');
+  if (origin && origin !== new URL(request.url).origin) return response(403, 'REQUEST REJECTED');
 
-  const contentType = request.headers.get("Content-Type") ?? "";
-  const contentLength = Number(request.headers.get("Content-Length") ?? 0);
-  if (
-    !contentType.toLowerCase().startsWith("application/json") ||
-    contentLength > 16_384
-  )
-    return response(400, "INVALID REQUEST");
+  const contentType = request.headers.get('Content-Type') ?? '';
+  const contentLength = Number(request.headers.get('Content-Length') ?? 0);
+  if (!contentType.toLowerCase().startsWith('application/json') || contentLength > 16_384)
+    return response(400, 'INVALID REQUEST');
 
   let value: unknown;
   try {
     value = await request.json();
   } catch {
-    return response(400, "INVALID REQUEST");
+    return response(400, 'INVALID REQUEST');
   }
 
   const payload = normalizedPayload(value);
-  if (!payload) return response(400, "INVALID REQUEST");
+  if (!payload) return response(400, 'INVALID REQUEST');
   if (payload.website) return response(200);
 
   try {
-    if (!(await verifyTurnstile(payload, request, env)))
-      return response(403, "SECURITY CHECK FAILED");
-    if (!(await deliver(payload, env))) return response(502, "DELIVERY FAILED");
+    if (!(await verifyTurnstile(payload.turnstileToken, request, env)))
+      return response(403, 'SECURITY CHECK FAILED');
+    if (!(await deliver(payload, env))) return response(502, 'DELIVERY FAILED');
     return response(200);
   } catch {
-    return response(502, "DELIVERY FAILED");
+    return response(502, 'DELIVERY FAILED');
   }
 }

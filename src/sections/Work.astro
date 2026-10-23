@@ -1,0 +1,292 @@
+---
+import WorkMap from '../components/WorkMap.astro';
+import { work, workCopy } from '../content/work';
+
+const first = work[0]?.id;
+---
+
+<section class="section" id="work" aria-labelledby="work-title">
+  <h2 class="section-title" id="work-title" data-thread="heading" data-morph="text">{workCopy.heading}</h2>
+  <div class="tabs" role="tablist" aria-label={workCopy.tabsLabel} data-work-tabs data-morph="text">
+    {
+      work.map((w) => (
+        <button
+          class="tab object chip"
+          type="button"
+          role="tab"
+          id={`tab-${w.id}`}
+          aria-controls={`panel-${w.id}`}
+          aria-selected={w.id === first}
+          tabindex={w.id === first ? 0 : -1}
+          data-id={w.id}
+        >
+          {w.tab}
+          <svg class="squiggle" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M1 5 C 20 2, 45 7, 65 4 S 92 3, 99 5" />
+          </svg>
+        </button>
+      ))
+    }
+  </div>
+  <WorkMap>
+    <div class="card object" data-map-overlay data-morph="object">
+      {
+        work.map((w) => (
+          <article
+            class="job"
+            role="tabpanel"
+            id={`panel-${w.id}`}
+            aria-labelledby={`tab-${w.id}`}
+            tabindex="0"
+            hidden={w.id !== first}
+          >
+            <h3>{w.role}</h3>
+            <p class="meta">{w.meta}</p>
+            {w.body.map((text, i) => (
+              <>
+                <p>{text}</p>
+                {i === 0 && w.note && <span class="note">{w.note}</span>}
+              </>
+            ))}
+          </article>
+        ))
+      }
+    </div>
+  </WorkMap>
+</section>
+
+<script>
+  import { initTabs } from '../lib/work/tabs';
+
+  const tabs = document.querySelector<HTMLElement>('[data-work-tabs]');
+  if (tabs) initTabs(tabs);
+</script>
+
+<style>
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 26px;
+    margin: 0 0 28px;
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .tab {
+    appearance: none;
+    padding: 6px 0 12px;
+    font: 500 var(--fs-sm) var(--text);
+    color: var(--ink-2);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* in ink a tab is plain type; the stepped frame from .object is for pixel mode */
+  :root:not([data-mode="pixel"]) .tab {
+    border: 0;
+    background: none;
+  }
+
+  .tab:is(:hover, :focus-visible),
+  .tab[aria-selected="true"] {
+    color: var(--ink);
+  }
+
+  /* a pen stroke under the tab: drawn in left to right on hover, and stays on the selected tab */
+  .squiggle {
+    position: absolute;
+    left: -3px;
+    bottom: -2px;
+    width: calc(100% + 6px);
+    height: 7px;
+    overflow: visible;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    clip-path: inset(-4px 100% -4px -4px);
+    transition: clip-path 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .squiggle path {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .tab:is(:hover, :focus-visible, [aria-selected="true"]) .squiggle {
+    clip-path: inset(-4px);
+  }
+
+  /* hovering an unselected tab: the same stroke, lighter, so the selected one still reads as chosen */
+  .tab:not([aria-selected="true"]) .squiggle {
+    opacity: 0.45;
+  }
+
+  .card {
+    position: absolute;
+    left: 32px;
+    top: 32px;
+    z-index: 3;
+    width: min(400px, 38%);
+    max-height: calc(100% - 98px);
+    overflow: auto;
+    padding: 22px 24px 8px;
+    border-radius: var(--r-card);
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+  }
+
+  /* the card lies flat on the map: no drawn thickness */
+  .card::after {
+    display: none;
+  }
+
+  .job h3 {
+    font-family: var(--display);
+    font-weight: var(--display-weight);
+    font-size: var(--fs-h3);
+    line-height: 1.1;
+    margin: 0 0 6px;
+  }
+
+  .job .meta {
+    margin: 0 0 14px;
+  }
+
+  .job .note {
+    display: block;
+    margin: -4px 0 14px;
+    transform: rotate(-2deg);
+    transform-origin: left;
+  }
+
+  :root[data-mode="pixel"] .tabs {
+    gap: 8px;
+    border: 0;
+    margin-bottom: 22px;
+  }
+
+  :root[data-mode="pixel"] .tab {
+    --object-fill: var(--card-2);
+    padding: 10px 14px;
+    font: 400 var(--fs-sm)/1 var(--label);
+  }
+
+  :root[data-mode="pixel"] .tab[aria-selected="true"] {
+    --object-fill: var(--accent);
+    --object-edge: var(--accent);
+    --drop: 4px;
+    color: var(--accent-ink);
+    translate: -2px -2px;
+  }
+
+  /* hover: a block of accent steps up from the bottom in whole steps; the text turns once it is covered */
+  :root[data-mode="pixel"] .tab::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    z-index: -1;
+    background: var(--accent);
+    clip-path: inset(100% 0 0);
+    transition: clip-path 0.15s steps(3);
+  }
+
+  :root[data-mode="pixel"] .tab:is(:hover, :focus-visible):not([aria-selected="true"]) {
+    color: var(--accent-ink);
+    transition: color 0s 0.15s;
+  }
+
+  :root[data-mode="pixel"] .tab:is(:hover, :focus-visible):not([aria-selected="true"])::before {
+    clip-path: inset(0);
+  }
+
+  :root[data-mode="pixel"] .tab .squiggle {
+    display: none;
+  }
+
+  :root[data-mode="pixel"] .card {
+    padding: 24px 24px 10px;
+  }
+
+  :root[data-mode="pixel"] .job .note {
+    transform: none;
+  }
+
+  @media (max-width: 980px) {
+    .card {
+      width: min(360px, 46%);
+    }
+  }
+
+  @media (max-width: 700px) {
+    /* one row that scrolls sideways, edge to edge; the right edge fades out so a cut-off tab reads as "more".
+       Padding leaves room for focus rings and the squiggle (a scroller clips), the margins take it back. */
+    .tabs {
+      --fade: var(--gutter);
+      flex-wrap: nowrap;
+      gap: 15px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: -6px calc(-1 * var(--gutter)) 10px;
+      padding: 6px var(--gutter) 5px;
+      border: 0;
+      /* the hairline stays the column's width, under the tabs, as the border was */
+      background: linear-gradient(var(--hair), var(--hair)) var(--gutter) calc(100% - 4px) / calc(100% - 2 * var(--gutter)) 1px no-repeat;
+      /* a mask reads only alpha: --ink is just an opaque colour */
+      mask: linear-gradient(to left, transparent, var(--ink) var(--fade));
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* a 44px hit area around each tab, inside the scroller's padding; ::after because pixel's hover fill is ::before.
+       [data-mode] outranks the drawn-object and hidden ::after rules. Ink tabs also widen into the gap, never meeting */
+    :root[data-mode] .tab::after {
+      content: "";
+      display: block;
+      position: absolute;
+      inset: -6px -7px -5px;
+      z-index: auto;
+      border: 0;
+      background: none;
+    }
+
+    :root[data-mode="pixel"] .tab::after {
+      inset: -5px 0;
+    }
+
+    /* pixel: the fade in three hard steps; more room for the raised tab's drop and the thicker focus ring */
+    :root[data-mode="pixel"] .tabs {
+      margin: -8px calc(-1 * var(--gutter)) 14px;
+      padding: 8px var(--gutter);
+      background: none;
+      mask: linear-gradient(
+        to left,
+        transparent 0 33%,
+        color-mix(in srgb, var(--ink) 33%, transparent) 33% 66%,
+        color-mix(in srgb, var(--ink) 66%, transparent) 66% 100%,
+        var(--ink) 100%
+      ) right / var(--fade) 100% no-repeat, linear-gradient(var(--ink), var(--ink)) left / calc(100% - var(--fade)) 100% no-repeat;
+    }
+
+    .tab {
+      font-size: var(--fs-xs);
+    }
+
+    :root[data-mode="pixel"] .tab {
+      padding: 9px 10px;
+    }
+
+    /* on a phone the card leaves the map and the text runs below it; [data-mode] outranks the pixel frame */
+    :root[data-mode] .card {
+      position: static;
+      width: auto;
+      max-height: none;
+      overflow: visible;
+      padding: 28px 0 0;
+      border: 0;
+      background: none;
+      filter: none;
+      font-size: var(--fs-body);
+    }
+  }
+</style>
