@@ -1,0 +1,142 @@
+---
+import Device from '../components/Device.astro';
+import { site } from '../content/site';
+
+const [first, last] = site.name;
+---
+
+<div class="hero">
+  <div>
+    <h1 class="name" data-morph-name data-ink-in="name">
+      <span>{first}</span>
+      <span>{last}<i class="nib" data-thread="start" data-ink-in="stop" aria-hidden="true"></i></span>
+    </h1>
+    <p class="lede note" data-thread="clear" data-morph="text">{site.lede}</p>
+  </div>
+  <Device />
+</div>
+
+<script>
+  import '../lib/ink-in/ink-in';
+</script>
+
+<style>
+  /* the first screen is the hero alone, at any size: the next section starts below the fold */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+    align-content: center;
+    min-height: calc(100svh - var(--bar-h));
+    padding: 4vh 0 8vh;
+  }
+
+  .name {
+    font-family: var(--display);
+    font-weight: var(--display-weight);
+    font-size: calc(clamp(60px, 9.6vw, 148px) * var(--display-scale));
+    line-height: 0.84;
+    letter-spacing: var(--display-tracking);
+    margin: 0 0 0.3em -0.04em;
+  }
+
+  /* one line per word; the full stop never wraps away from the last letter */
+  .name span {
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* ink signs the surname in italic */
+  :root:not([data-mode="pixel"]) .name span + span {
+    font-style: italic;
+  }
+
+  /* the full stop: the line starts here. Ink: a red ball. Pixel: one square of the face's pixel grid */
+  .nib {
+    display: inline-block;
+    width: 0.12em;
+    height: 0.12em;
+    margin-left: 0.04em;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  :root[data-mode="pixel"] .name {
+    line-height: 0.92;
+    margin-left: -0.02em;
+  }
+
+  :root[data-mode="pixel"] .nib {
+    width: round(0.11em, 1px);
+    height: round(0.11em, 1px);
+    margin-left: 0.02em;
+    border-radius: 0;
+  }
+
+  /* the intro is a note in the margin, in the hand (.note), at the hand's big size */
+  .lede {
+    max-width: 30ch;
+    font-size: var(--fs-hand-lg);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  /* pixel type runs wider than the hand */
+  :root[data-mode="pixel"] .lede {
+    max-width: 34ch;
+  }
+
+  :root.rise .name span {
+    animation: rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  :root.rise .name span + span {
+    animation-delay: 0.12s;
+  }
+
+  :root.rise:not([data-mode="pixel"]) .nib {
+    animation: dot 0.5s 0.85s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.12em);
+    }
+  }
+
+  @keyframes dot {
+    from {
+      transform: scale(0);
+    }
+  }
+
+  /* the ink-in (lib/ink-in): the full stop waits to be pressed last */
+  :root.ink-in .nib {
+    visibility: hidden;
+  }
+
+  /* the name waits for the pen (ink) or its pixels (pixel) to draw it, rather than showing whole first */
+  :root.ink-in .name {
+    color: transparent;
+  }
+
+  @media (max-width: 980px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+    }
+
+    /* pixel: the trace runs under the name here, so the intro sits lower to give it clearance */
+    :root[data-mode="pixel"] .name {
+      margin-bottom: 0.7em;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .hero {
+      padding: 3vh 0 6vh;
+    }
+  }
+</style>

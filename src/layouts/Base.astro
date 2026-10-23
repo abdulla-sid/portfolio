@@ -1,0 +1,65 @@
+---
+import { Font, fontData } from 'astro:assets';
+import { createHash } from 'node:crypto';
+import { site } from '../content/site';
+import { INK_IN } from '../lib/ink-in/keys';
+import { STORAGE_KEYS } from '../lib/skin-keys';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+// Pixel visitors' hero face: preloaded only in pixel mode, so they never see the name in a fallback first
+const pixelFace = fontData['--font-pixelify']?.[0]?.src[0]?.url;
+
+// Before first paint: the saved skin goes on <html>, so pixel visitors never see a flash of ink, and the hero's name
+// is set up to ink in (once a session) or rise. Astro's CSP does not hash is:inline scripts, so this one adds its own.
+const prePaint = `(function (root, keys, ink, face) {
+  var mode = 'ink';
+  var inking = false;
+  try {
+    mode = localStorage.getItem(keys.mode) || mode;
+    inking = !sessionStorage.getItem(ink.sessionKey) && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) {}
+  if (location.hash === '#pixel') mode = 'pixel';
+  root.dataset.mode = mode === 'pixel' ? 'pixel' : 'ink';
+  root.classList.add(inking ? ink.className : ink.riseClass);
+  if (mode === 'pixel' && face) {
+    var link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'font';
+    link.type = 'font/woff2';
+    link.crossOrigin = '';
+    link.href = face;
+    document.head.append(link);
+  }
+})(document.documentElement, ${JSON.stringify(STORAGE_KEYS)}, ${JSON.stringify(INK_IN)}, ${JSON.stringify(pixelFace ?? '')});`;
+Astro.csp?.insertScriptHash(`sha256-${createHash('sha256').update(prePaint).digest('base64')}`);
+---
+
+<!doctype html>
+<html lang="en" data-mode="ink">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{site.title}</title>
+    <meta name="description" content={site.lede} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- lib/skin.ts keeps this in step with the page colour of the current skin -->
+    <meta name="theme-color" />
+    <script is:inline set:html={prePaint} />
+    <Font
+      cssVariable="--font-instrument"
+      preload={[
+        { weight: '400', style: 'normal' },
+        { weight: '400', style: 'italic' },
+      ]}
+    />
+    <Font cssVariable="--font-newsreader" preload={[{ weight: '400', style: 'normal' }]} />
+    <Font cssVariable="--font-caveat" />
+    <Font cssVariable="--font-pixelify" />
+    <Font cssVariable="--font-silkscreen" />
+    <Font cssVariable="--font-schibsted" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

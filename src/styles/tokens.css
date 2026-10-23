@@ -1,0 +1,165 @@
+/*
+  Every colour and type role on the site. Two skins:
+    ink     :root
+    pixel   [data-mode='pixel']
+  Canvases and the map read these through token() in lib/skin.ts, so changing a value here changes them too.
+*/
+
+:root {
+  /* surfaces */
+  --paper: #f5f1ea;
+  --dot: transparent;
+  --card: #fdfbf8;
+  --card-2: #f8f5ef;
+  /* ink and lines */
+  --ink: #241f1a;
+  --ink-2: #6b6253;
+  --hair: #d8d2c6;
+  --edge: #241f1a;
+  --shadow: #241f1a;
+  /* the one accent: the red ink in ink mode, the board's highlight in pixel mode */
+  --accent: #be1e2d;
+  --accent-soft: #be1e2d30;
+  --accent-ink: #fdfbf8; /* text on an accent fill */
+  --trace: transparent; /* pixel mode's unlit PCB trace */
+  --warn: #be1e2d;
+
+  /* LCD (the hero device) */
+  --lcd-bg: #e9e4d9;
+  --lcd-ghost: #e0dacf;
+  --lcd-dim: #bcae92;
+  --lcd-mid: #776b58;
+  --lcd-fg: #241f1a;
+  --lcd-accent: #be1e2d;
+
+  /* map */
+  --map-bg: #ece7de;
+  --map-road: #c3b497;
+  --map-major: #8f806a;
+  --map-water: #c9d0c4;
+  --map-waterway: #aeb9ac;
+
+  /* type roles */
+  --display: var(--font-instrument);
+  --text: var(--font-newsreader);
+  --hand: var(--font-caveat);
+  --label: var(--font-newsreader);
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --display-weight: 400; /* Instrument Serif has the one weight */
+  --display-scale: 1.25;
+  --display-tracking: -0.02em;
+
+  /* type scale: every font-size on the page is one of these (the hero name aside).
+     Headings h2/h3, then lead (big reading text), body, sm (cards, controls, meta), xs (captions), micro (stamps, credits).
+     The hand has two sizes of its own: notes and fields, and the big lede. */
+  --fs-h2: clamp(46px, 5vw, 66px);
+  --fs-h3: 36px;
+  --fs-lead: 22px;
+  --fs-body: 19px;
+  --fs-sm: 17px;
+  --fs-xs: 15px;
+  --fs-micro: 12px;
+  --fs-hand: 24px;
+  --fs-hand-lg: 32px;
+
+  /* corner radii. Cards and panels share one; anything sitting inside a card, one smaller; paper things are
+     barely rounded; buttons are pills. Devices (clock, iPod, their screens) keep their own physical shape. */
+  --r-card: 8px;
+  --r-inset: 3px;
+  --r-paper: 2px;
+  --r-pill: 999px;
+
+  /* layout */
+  --page-max: 1240px;
+  --gutter: 64px;
+  --bar-h: 80px; /* the top bar; the hero fills the rest of the first screen */
+  --stroke: 1.5px;
+}
+
+/*
+  PIXEL RULE. One board, few colours, three faces.
+  Palette (every pixel colour is one of these; the LCD, iPod, portrait and map draw from them too):
+    layers   --shadow (screens, drop shadows)  --paper (board)  --card (objects)  --card-2 (raised: buttons, stamps)
+    lines    --hair (rules, unlit traces)  --edge (object frames)
+    text     --ink (primary)  --ink-2 (secondary: meta, captions, idle tabs)
+    accent   --accent (the lit trace, hand notes, selected/primary fills)  --accent-ink (text on an accent fill)
+    warm     --warn, only for "needs you / in progress" (building light, a terminal ask, a nearly full message)
+  Type:
+    --display  Pixelify 700: the name, headings, names on objects (h3, cartridges, the addressee)
+    --hand     Pixelify 500, accent: notes, the lede, what a visitor writes; the terminal (--mono) too
+    --label    Silkscreen 400: every control and tag (tabs, buttons, statuses, field labels, stamps, engravings).
+               It draws capitals already: no text-transform, no extra tracking.
+               Controls --fs-sm, statuses --fs-xs, field labels, stamps and engravings --fs-micro
+    --text     Schibsted: everything you read in sentences (body, meta, captions, links). Never italic.
+*/
+:root[data-mode="pixel"] {
+  color-scheme: dark; /* the browser's own controls (scrollbars, autofill) go dark too */
+  --paper: #1b1728;
+  --card: #262036;
+  --card-2: #2e2742;
+  --dot: var(--card);
+  --ink: #ede7f8;
+  --ink-2: #b4abd4;
+  --hair: #3a3157;
+  --edge: #5a4d85;
+  --shadow: #100d1a;
+  --accent: #c6a4ff;
+  --accent-soft: #c6a4ff40;
+  --accent-ink: var(--shadow);
+  --trace: var(--hair);
+  --warn: #ffb48c;
+
+  --lcd-bg: var(--shadow);
+  --lcd-ghost: var(--paper);
+  --lcd-dim: var(--hair);
+  --lcd-mid: var(--ink-2);
+  --lcd-fg: var(--ink);
+  --lcd-accent: var(--accent);
+
+  --map-bg: var(--paper);
+  --map-road: var(--hair);
+  --map-major: var(--edge);
+  --map-water: var(--card-2);
+  --map-waterway: var(--edge);
+
+  --display: var(--font-pixelify);
+  --text: var(--font-schibsted);
+  --hand: var(--font-pixelify);
+  /* Pixelify's 5 reads as S at small sizes; Silkscreen's does not */
+  --label: var(--font-silkscreen);
+  --mono: var(--font-pixelify);
+  --display-weight: 700;
+  --display-scale: 0.9;
+  --display-tracking: 0;
+
+  --fs-h2: clamp(40px, 4.4vw, 56px);
+  --fs-h3: 28px;
+  --fs-lead: 20px;
+  --fs-body: 18px;
+  --fs-sm: 16px;
+  --fs-xs: 14px;
+  --fs-micro: 11px;
+  --fs-hand: 18px;
+  --fs-hand-lg: 22px;
+
+  /* pixel is square by design */
+  --r-card: 0;
+  --r-inset: 0;
+  --r-paper: 0;
+  --r-pill: 0;
+}
+
+@media (max-width: 980px) {
+  :root {
+    --gutter: 40px;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --gutter: 20px;
+    --bar-h: 62px;
+    --fs-body: 18px;
+    --fs-hand-lg: 28px;
+  }
+}

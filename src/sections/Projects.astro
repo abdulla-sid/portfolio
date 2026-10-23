@@ -1,0 +1,18 @@
+---
+import Shelf from '../components/Shelf.astro';
+import { projectsCopy } from '../content/projects';
+---
+
+<!-- Projects are ongoing, not dated, so no heading loop here; the ink thread drops through the shelf (anchors here and in Shelf). -->
+<section class="section" id="projects" aria-labelledby="projects-title">
+  <h2 class="section-title" id="projects-title" data-morph="text" data-thread="shelf-text">{projectsCopy.heading}</h2>
+  <p class="intro" data-morph="text" data-thread="shelf-text">{projectsCopy.intro}</p>
+  <Shelf />
+</section>
+
+<style>
+  .intro {
+    margin: -12px 0 36px;
+    color: var(--ink-2);
+  }
+</style>

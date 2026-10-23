@@ -1,0 +1,39 @@
+---
+import { labelArt, spritePath } from '../../lib/shelf/sprites';
+
+interface Props {
+  id: string;
+}
+
+// one sprite pixel in CSS pixels
+const CELL = 3;
+const rows = labelArt[Astro.props.id];
+const cols = rows?.[0]?.length ?? 0;
+---
+
+{
+  rows && (
+    <svg
+      class="art"
+      viewBox={`0 0 ${cols} ${rows.length}`}
+      width={cols * CELL}
+      height={rows.length * CELL}
+      shape-rendering="crispEdges"
+      aria-hidden="true"
+    >
+      <path d={spritePath(rows)} />
+    </svg>
+  )
+}
+
+<style>
+  /* the art belongs to the cartridge, which only exists in pixel mode */
+  .art {
+    display: none;
+    fill: currentColor;
+  }
+
+  :root[data-mode="pixel"] .art {
+    display: block;
+  }
+</style>

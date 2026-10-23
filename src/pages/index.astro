@@ -1,0 +1,26 @@
+---
+import MusicData from '../components/MusicData.astro';
+import Thread from '../components/Thread.astro';
+import { chrome } from '../content/site';
+import Base from '../layouts/Base.astro';
+import About from '../sections/About.astro';
+import Contact from '../sections/Contact.astro';
+import Hero from '../sections/Hero.astro';
+import Projects from '../sections/Projects.astro';
+import TopBar from '../sections/TopBar.astro';
+import Work from '../sections/Work.astro';
+---
+
+<Base>
+  <a class="skip" href="#work">{chrome.skip}</a>
+  <MusicData />
+  <div class="page" id="page">
+    <Thread />
+    <TopBar />
+    <Hero />
+    <About />
+    <Work />
+    <Projects />
+    <Contact />
+  </div>
+</Base>

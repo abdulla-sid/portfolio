@@ -1,0 +1,507 @@
+---
+import { projects, projectsCopy, statusLabel } from '../content/projects';
+import LabelArt from './shelf/LabelArt.astro';
+import Visual from './shelf/Visual.astro';
+
+/* Objects on a plank (cartridges in pixel mode). Picking one opens its details below; the first starts open. */
+const openId = projects[0]?.id;
+---
+
+<div data-shelf>
+  <ul class="shelf" aria-label={projectsCopy.heading}>
+    {
+      projects.map((p) => (
+        <li>
+          <div class="stand">
+            <button
+              class:list={['item', 'object', p.object]}
+              type="button"
+              aria-expanded={p.id === openId}
+              aria-controls={`project-${p.id}`}
+              aria-describedby={`project-cap-${p.id}`}
+              data-morph="object"
+              data-thread="shelf"
+            >
+              <i class="grip" aria-hidden="true" />
+              <span class="label">
+                <LabelArt id={p.id} />
+                {p.name}
+              </span>
+            </button>
+          </div>
+          <p class="cap" id={`project-cap-${p.id}`} data-morph="text" data-thread="shelf-cap">
+            <span class="status">
+              <i class="light" data-status={p.status} aria-hidden="true" />
+              {statusLabel[p.status]}
+              <span class="visually-hidden">.</span>
+            </span>
+            {p.caption}
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+  <div class="panel object" data-shelf-panel data-morph="object" data-thread="panel" hidden={!openId}>
+    {
+      projects.map((p) => (
+        <article
+          class:list={['project', { solo: !p.visual }]}
+          id={`project-${p.id}`}
+          aria-labelledby={`project-name-${p.id}`}
+          hidden={p.id !== openId}
+        >
+          <div>
+            <h3 id={`project-name-${p.id}`}>{p.name}</h3>
+            <p class="meta">{p.meta}</p>
+            {p.body.map((text) => (
+              <p>{text}</p>
+            ))}
+            {p.link && (
+              <a class="link" href={p.link.href}>
+                {p.link.label}
+              </a>
+            )}
+            {p.note && <span class="note">{p.note}</span>}
+          </div>
+          {p.visual && (
+            <div class="side">
+              <Visual kind={p.visual} />
+            </div>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  import { initShelf } from '../lib/shelf/shelf';
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-shelf]')) initShelf(el);
+</script>
+
+<style>
+  /* every slot carries its own piece of plank, so the row joins up and wraps into two shelves on a phone */
+  .shelf {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stand {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    height: 190px;
+    padding-left: 22px;
+  }
+
+  .stand::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -11px;
+    height: 11px;
+    border-block: var(--stroke) solid var(--ink);
+    background: var(--card-2);
+  }
+
+  li:first-child .stand::after {
+    border-left: var(--stroke) solid var(--ink);
+  }
+
+  li:last-child .stand::after {
+    border-right: var(--stroke) solid var(--ink);
+  }
+
+  /* status: filled, half or hollow, so it reads without colour; the word says it outright */
+  .cap {
+    max-width: 24ch;
+    margin: 24px 22px 0;
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--ink-2);
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .light {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: var(--stroke) solid var(--ink);
+  }
+
+  .light[data-status="active"] {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .light[data-status="building"] {
+    background: linear-gradient(90deg, var(--accent) 50%, transparent 0);
+  }
+
+  /* ink objects: a drawn outline with a back cover offset up and right for thickness */
+  .item {
+    appearance: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 10px;
+    border-radius: 2px 5px 5px 2px;
+    box-shadow:
+      5px -5px 0 calc(-1 * var(--stroke)) var(--card-2),
+      5px -5px 0 0 var(--ink);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      translate 0.25s cubic-bezier(0.2, 0.7, 0.2, 1),
+      rotate 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+    /* its own layer, so the drawn lines stay whole while it leans */
+    will-change: translate, rotate;
+  }
+
+  .item::after {
+    display: none;
+  }
+
+  /* picked up: it lifts and leans a little, each object its own way */
+  .item:is(:hover, :focus-visible) {
+    translate: 0 -4px;
+    rotate: var(--tilt);
+  }
+
+  /* its status light pulses once */
+  li:has(.item:is(:hover, :focus-visible)) .light {
+    animation: light-pulse 0.5s ease-out;
+  }
+
+  @keyframes light-pulse {
+    40% {
+      scale: 1.6;
+    }
+  }
+
+  .item[aria-expanded="true"] {
+    translate: 0 -14px;
+  }
+
+  .label {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 6px 7px 7px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    font: italic 400 var(--fs-sm)/1.05 var(--display);
+    letter-spacing: -0.01em;
+  }
+
+  .grip {
+    display: none;
+  }
+
+  .notebook {
+    --tilt: -2deg;
+    width: 132px;
+    height: 156px;
+    padding-left: 22px;
+    background: linear-gradient(90deg, transparent 12px, var(--ink-2) 12px 14px, transparent 0) var(--ink);
+  }
+
+  .box {
+    --tilt: 1.5deg;
+    width: 156px;
+    height: 98px;
+    padding-top: 32px;
+    border-radius: var(--r-paper);
+    background: linear-gradient(transparent 24px, var(--ink) 24px 25.5px, transparent 0) var(--card);
+  }
+
+  .sketchbook {
+    width: 150px;
+    height: 132px;
+    margin-left: 6px;
+    --tilt: 3deg;
+    --label-fill: var(--ink);
+    background: var(--card-2);
+    rotate: 6deg;
+    transform-origin: 100% 100%;
+  }
+
+  .spiral {
+    --tilt: -1.5deg;
+    --label-fill: var(--ink-2);
+    width: 126px;
+    height: 140px;
+    padding-top: 22px;
+    background:
+      radial-gradient(circle at 50% 9px, var(--paper) 2.5px, var(--ink) 3px 4.2px, transparent 4.6px) 6px 0 / 14px
+      18px repeat-x,
+      var(--card);
+  }
+
+  /* the details open in place under the shelf, the notch pointing at the object picked */
+  .panel {
+    --drop: 8px;
+    margin-top: 44px;
+    padding: 30px 34px 14px;
+    border-radius: var(--r-card);
+    /* one row that can shrink below the details, so they fold with the panel's box while it opens or closes */
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .panel[hidden] {
+    display: none;
+  }
+
+  .panel[data-moving] .project {
+    overflow: clip;
+  }
+
+  .panel::after {
+    display: none;
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: calc(var(--notch, 80px) - 8px);
+    width: 15px;
+    height: 15px;
+    background: var(--card);
+    border-left: var(--stroke) solid var(--ink);
+    border-top: var(--stroke) solid var(--ink);
+    rotate: 45deg;
+  }
+
+  .project {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 72px;
+    align-items: start;
+  }
+
+  .project[hidden] {
+    display: none;
+  }
+
+  .project.solo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project h3 {
+    margin: 0 0 6px;
+    font-family: var(--display);
+    font-weight: var(--display-weight);
+    font-size: var(--fs-h3);
+    line-height: 1.05;
+  }
+
+  .side {
+    max-width: 340px;
+  }
+
+  .project .meta {
+    margin: 0 0 16px;
+  }
+
+  .project .note {
+    display: inline-block;
+    transform: rotate(-2deg);
+  }
+
+  .link {
+    font-style: italic;
+  }
+
+  /* pixel: every object is a game cartridge with grip ridges and a label with its own art */
+  :root[data-mode="pixel"] .stand::after {
+    height: 10px;
+    bottom: -10px;
+    border: 0;
+    background: var(--edge);
+    box-shadow: 0 6px 0 var(--shadow);
+  }
+
+  :root[data-mode="pixel"] .item {
+    --drop: 6px;
+    width: 140px;
+    height: 140px;
+    margin-left: 0;
+    padding: 36px 10px 12px;
+    justify-content: flex-end;
+    border-radius: 0;
+    box-shadow: none;
+    rotate: none;
+    transition: translate 0.12s steps(2);
+  }
+
+  :root[data-mode="pixel"] .item[aria-expanded="true"] {
+    translate: 0 -16px;
+  }
+
+  :root[data-mode="pixel"] .grip {
+    display: block;
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    top: 12px;
+    height: 14px;
+    background: repeating-linear-gradient(var(--edge) 0 2px, transparent 2px 4px);
+  }
+
+  :root[data-mode="pixel"] .label {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 7px;
+    border: 0;
+    background: var(--label-fill, var(--accent));
+    color: var(--accent-ink);
+    font: 700 var(--fs-xs)/1.1 var(--display);
+    letter-spacing: 0;
+  }
+
+  :root[data-mode="pixel"] .light {
+    width: 12px;
+    height: 12px;
+    border: 0;
+    border-radius: 0;
+    background: var(--shadow);
+    box-shadow: 0 0 0 2px var(--edge);
+  }
+
+  /* pixel: the pulse is a ring that jumps out a step at a time */
+  :root[data-mode="pixel"] li:has(.item:is(:hover, :focus-visible)) .light {
+    animation: light-ring 0.45s steps(1);
+  }
+
+  @keyframes light-ring {
+    0% {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    33% {
+      outline: 2px solid var(--accent);
+      outline-offset: 5px;
+    }
+
+    66% {
+      outline: 2px solid var(--accent-soft);
+      outline-offset: 8px;
+    }
+  }
+
+  :root[data-mode="pixel"] .light[data-status="active"] {
+    background: var(--accent);
+    box-shadow:
+      0 0 0 2px var(--shadow),
+      0 0 0 5px var(--accent-soft);
+  }
+
+  :root[data-mode="pixel"] .light[data-status="building"] {
+    background: var(--warn);
+    box-shadow: 0 0 0 2px var(--shadow);
+  }
+
+  :root[data-mode="pixel"] .status {
+    font: 400 var(--fs-xs)/1 var(--label);
+  }
+
+  :root[data-mode="pixel"] .panel::before {
+    top: -15px;
+    left: calc(var(--notch, 80px) - 6px);
+    width: 12px;
+    height: 12px;
+    border: 0;
+    background: var(--edge);
+    box-shadow:
+      -6px 6px 0 var(--edge),
+      6px 6px 0 var(--edge);
+    rotate: none;
+  }
+
+  :root[data-mode="pixel"] .project .note {
+    transform: none;
+  }
+
+  @media (max-width: 980px) {
+    .project {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .shelf {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 34px;
+    }
+
+    li:nth-child(odd) .stand::after {
+      border-left: var(--stroke) solid var(--ink);
+    }
+
+    li:nth-child(even) .stand::after {
+      border-right: var(--stroke) solid var(--ink);
+    }
+
+    .stand {
+      height: 170px;
+      padding-left: 14px;
+    }
+
+    .cap {
+      margin: 22px 10px 0 14px;
+    }
+
+    .notebook {
+      width: 124px;
+      height: 146px;
+    }
+
+    .box {
+      width: 140px;
+      height: 92px;
+    }
+
+    .sketchbook {
+      width: 132px;
+    }
+
+    .spiral {
+      width: 116px;
+      height: 132px;
+    }
+
+    :root[data-mode="pixel"] .item {
+      height: 132px;
+    }
+
+    .panel {
+      margin-top: 36px;
+      padding: 24px 18px 8px;
+    }
+  }
+</style>

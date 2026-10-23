@@ -1,0 +1,274 @@
+---
+import { device } from '../content/device';
+import { site } from '../content/site';
+import { apps, H, W } from '../lib/lcd/apps';
+
+const engraving = site.domain.split('.')[0];
+---
+
+<div class="stage" id="device">
+  {/* before the device in the DOM so Tab meets it where it sits, on the device's left edge */}
+  <button class="red" type="button" data-red data-thread="device-in" data-morph="object" aria-label={device.next}></button>
+  <div class="device object" data-thread="device-out" data-morph="object">
+    <button class="screen" type="button" data-screen aria-describedby="device-say">
+      <canvas width={W} height={H}></canvas>
+    </button>
+    <div class="foot">
+      <span class="engrave" aria-hidden="true">{engraving}</span>
+      <div class="dots" role="group" aria-label={device.appsLabel}>
+        {apps.map((a, i) => <button type="button" data-app aria-label={a.name} aria-current={i === 0 ? 'true' : 'false'} />)}
+      </div>
+    </div>
+  </div>
+  <p class="visually-hidden" id="device-say" data-say aria-live="polite"></p>
+</div>
+
+<script>
+  import { byId } from '../lib/dom';
+  import { mountDevice } from '../lib/lcd/device';
+
+  mountDevice(byId('device'));
+</script>
+
+<style>
+  .stage {
+    position: relative;
+    justify-self: center;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .device {
+    border-radius: 26px 26px 26px 64px;
+    padding: 22px 22px 18px;
+  }
+
+  .screen {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: var(--stroke) solid var(--ink);
+    border-radius: 6px;
+    background: var(--lcd-bg);
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  /* hover cue: the screen's frame goes a stroke heavier */
+  .screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .screen:is(:hover, :focus-visible)::before {
+    opacity: 1;
+  }
+
+  .screen canvas {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding: 0 2px;
+  }
+
+  .engrave {
+    font: italic 400 var(--fs-xs) var(--text);
+    color: var(--ink-2);
+  }
+
+  .dots {
+    display: flex;
+    gap: 2px;
+  }
+
+  .dots button {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .dots button::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border: var(--stroke) solid var(--ink);
+    border-radius: 50%;
+    transition: background-color 0.2s;
+  }
+
+  .dots button[aria-current="true"]::before {
+    background: var(--ink);
+  }
+
+  .red {
+    position: absolute;
+    left: -15px;
+    top: 34%;
+    z-index: 3;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: var(--stroke) solid var(--ink);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 3px 0 var(--ink);
+    cursor: pointer;
+    transition:
+      transform 0.08s,
+      box-shadow 0.08s;
+  }
+
+  /* the button rises under the finger, then presses */
+  .red:is(:hover, :focus-visible) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--ink);
+  }
+
+  .red:active,
+  .red.pressed {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  /* pixel: square everything, a thick bezel, and the 120x80 dot grid made visible */
+  :root[data-mode="pixel"] .device {
+    border-radius: 0;
+  }
+
+  :root[data-mode="pixel"] .screen {
+    border: 3px solid var(--shadow);
+    border-radius: 0;
+  }
+
+  /* pixel: a 1px accent frame just inside the bezel */
+  :root[data-mode="pixel"] .screen::before {
+    border-radius: 0;
+    box-shadow: inset 0 0 0 1px var(--accent);
+    transition: none;
+  }
+
+  :root[data-mode="pixel"] .screen::after {
+    --grid: color-mix(in srgb, var(--shadow) 18%, transparent);
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / calc(100% / 120) 100%,
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% calc(100% / 80);
+  }
+
+  :root[data-mode="pixel"] .engrave {
+    font: 400 var(--fs-micro) var(--label);
+  }
+
+  :root[data-mode="pixel"] .dots button::before {
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--ink-2);
+    border-radius: 0;
+    transition: none;
+  }
+
+  :root[data-mode="pixel"] .dots button[aria-current="true"]::before {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  :root[data-mode="pixel"] .red {
+    --ring: 0 -3px 0 var(--shadow), 0 3px 0 var(--shadow), -3px 0 0 var(--shadow), 3px 0 0 var(--shadow);
+    border: 0;
+    border-radius: 0;
+    box-shadow:
+      var(--ring),
+      3px 6px 0 var(--shadow);
+    transition: none;
+  }
+
+  /* pixel: up a whole step with a longer drop, then down onto the board */
+  :root[data-mode="pixel"] .red:is(:hover, :focus-visible) {
+    transform: translateY(-3px);
+    box-shadow:
+      var(--ring),
+      3px 9px 0 var(--shadow);
+  }
+
+  :root[data-mode="pixel"] .red:active,
+  :root[data-mode="pixel"] .red.pressed {
+    transform: translateY(3px);
+    box-shadow: var(--ring);
+  }
+
+  @media (max-width: 980px) {
+    .stage {
+      max-width: 400px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .stage {
+      max-width: none;
+      padding: 0 4px 0 18px;
+    }
+
+    .red {
+      left: 3px;
+    }
+
+    /* 44px hit areas, invisible. The red one stops short of the screen beside it */
+    .red::after {
+      content: "";
+      position: absolute;
+      inset: -10px;
+    }
+
+    :root[data-mode="pixel"] .red::after {
+      inset: -8px;
+    }
+
+    /* the app dots space out to 44px apart (they cannot have 44px each at 24px apart); the row keeps its height */
+    .dots {
+      gap: 0;
+      margin-right: -11px;
+    }
+
+    .dots button {
+      width: 44px;
+      height: 44px;
+      margin: -11px 0;
+    }
+  }
+
+  /* under 360px the spaced dots need the whole foot: the engraving gives way */
+  @media (max-width: 359px) {
+    .engrave {
+      display: none;
+    }
+
+    .dots {
+      margin-left: auto;
+    }
+  }
+</style>

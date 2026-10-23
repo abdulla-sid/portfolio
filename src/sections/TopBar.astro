@@ -1,0 +1,167 @@
+---
+import MiniPlayer from '../components/MiniPlayer.astro';
+import { chrome } from '../content/site';
+
+const { ink, pixel } = chrome.modeSwitch;
+---
+
+<header class="bar">
+  <div class="right">
+    <MiniPlayer />
+    <button
+      class="pixelate object chip"
+      type="button"
+      aria-label={ink.action}
+      data-pixelate
+      data-ink-action={ink.action}
+      data-pixel-action={pixel.action}
+      data-morph="object"
+    >
+      <i aria-hidden="true"></i><span class="labels"><span class="in-ink">{ink.label}</span><span class="in-pixel">{pixel.label}</span></span>
+    </button>
+  </div>
+</header>
+
+<script>
+  import { morphTo, preloadFonts } from '../lib/morph/morph';
+  import { getSkin, onSkinChange } from '../lib/skin';
+
+  const pixelate = document.querySelector<HTMLButtonElement>('[data-pixelate]');
+  const other = () => (getSkin().mode === 'pixel' ? 'ink' : 'pixel');
+
+  function sync(): void {
+    const { mode } = getSkin();
+    const action = mode === 'pixel' ? pixelate?.dataset.pixelAction : pixelate?.dataset.inkAction;
+    if (action) pixelate?.setAttribute('aria-label', action);
+  }
+
+  pixelate?.addEventListener('click', () => morphTo(other()));
+  // warm the other skin's fonts as soon as a switch looks likely
+  for (const intent of ['pointerenter', 'focus', 'touchstart']) {
+    pixelate?.addEventListener(intent, () => preloadFonts(other()), { once: true, passive: true });
+  }
+  // Back and Forward move between the skins: only arriving at #pixel, or leaving it for no hash, switches mode;
+  // other hashes (the skip link's #work) leave it alone
+  // (read from the event, not location: when the hash changes twice quickly, location is already the second one)
+  addEventListener('hashchange', (e) => {
+    const [from, to] = [new URL(e.oldURL).hash, new URL(e.newURL).hash];
+    if (to === '#pixel') morphTo('pixel');
+    else if (!to && from === '#pixel') morphTo('ink');
+  });
+  onSkinChange(sync);
+  sync();
+</script>
+
+<style>
+  .bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    height: var(--bar-h);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .right {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    min-width: 0;
+  }
+
+  /* the one mode switch; ink: a pill that presses down */
+  .pixelate {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    /* the same width in both modes (pixel's label is the wider one), so the bar never shifts on a switch */
+    min-width: 108px;
+    justify-content: center;
+    font: 500 var(--fs-sm) / 1 var(--text);
+    color: var(--ink);
+    border-radius: var(--r-pill);
+    padding: 7px 14px 7px 10px;
+    box-shadow: 0 2px 0 var(--ink);
+    cursor: pointer;
+    transition:
+      transform 0.08s,
+      box-shadow 0.08s;
+  }
+
+  .pixelate:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--ink);
+  }
+
+  .pixelate:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  /* four squares: a red one, an ink one, two blank */
+  .pixelate i {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    background:
+      linear-gradient(var(--accent), var(--accent)) 0 0 / 6px 6px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) 6px 6px / 6px 6px no-repeat,
+      linear-gradient(var(--hair), var(--hair)) 6px 0 / 6px 6px no-repeat,
+      linear-gradient(var(--hair), var(--hair)) 0 6px / 6px 6px no-repeat;
+  }
+
+  /* both labels share one cell, so the button is as wide as the longer one in either mode and never jumps */
+  .labels {
+    display: grid;
+    justify-items: center;
+  }
+
+  .labels > span {
+    grid-area: 1 / 1;
+  }
+
+  :root[data-mode="pixel"] .in-ink,
+  :root:not([data-mode="pixel"]) .in-pixel {
+    visibility: hidden;
+  }
+
+  :root[data-mode="pixel"] .pixelate {
+    --object-fill: var(--card-2);
+    font: 400 var(--fs-sm) / 1 var(--label);
+    padding: 9px 14px 9px 11px;
+    box-shadow: none;
+    transform: none;
+    transition: none;
+  }
+
+  :root[data-mode="pixel"] .pixelate:hover {
+    --object-fill: var(--accent);
+    --object-edge: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :root[data-mode="pixel"] .pixelate i {
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+  }
+
+  :root[data-mode="pixel"] .pixelate:hover i {
+    background: var(--accent-ink);
+  }
+
+  @media (max-width: 700px) {
+    .right {
+      gap: 12px;
+    }
+
+    /* a 44px-tall hit area; the pill keeps its size */
+    .pixelate::before {
+      content: "";
+      position: absolute;
+      inset: -6px 0;
+    }
+  }
+</style>

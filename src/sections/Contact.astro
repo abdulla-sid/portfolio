@@ -1,0 +1,670 @@
+---
+import { contact, site } from '../content/site';
+import { clockParts } from '../lib/clock/clock';
+import { LIMITS } from '../lib/contact/contact';
+
+const { card } = contact;
+// the postmark as of the build; the script below keeps it on Lahore's clock
+const now = clockParts(new Date(), site.timeZone);
+---
+
+<section class="section contact" id="contact">
+  <h2 class="section-title" data-thread="heading" data-morph="text">{contact.heading}</h2>
+
+  <div class="sayhi">
+    <form class="postcard-form" data-postcard novalidate>
+      <fieldset class="postcard object" data-morph="object">
+        <div class="message">
+          <label>
+            <span class="visually-hidden">{card.message.label}</span>
+            <textarea
+              name="message"
+              rows="5"
+              maxlength={LIMITS.message}
+              placeholder={card.message.placeholder}
+              aria-describedby="card-room"
+              required></textarea>
+          </label>
+          <!-- how full the card is: a bar that fills as you write, and a word on it -->
+          <div class="room" data-room>
+            <span class="bar" aria-hidden="true"><i></i></span>
+            <span id="card-room" data-room-words>{card.room[0]?.say}</span>
+          </div>
+        </div>
+
+        <div class="address">
+          <div class="stamps" aria-hidden="true">
+            <span class="postmark">
+              <b>{site.city}</b>
+              <span data-postmark-time>{now.day} {now.month} {now.hh}:{now.mm}</span>
+            </span>
+            <span class="stamp"><span><i></i></span></span>
+          </div>
+          <p class="to"><b>{card.to}</b>{card.toPlace}</p>
+          <label>
+            <span>{card.name.label}</span>
+            <input name="name" autocomplete="name" maxlength={LIMITS.name} placeholder={card.name.placeholder} required />
+          </label>
+          <label>
+            <span>{card.email.label}</span>
+            <input
+              name="email"
+              type="email"
+              autocomplete="email"
+              maxlength={LIMITS.email}
+              placeholder={card.email.placeholder}
+              required
+            />
+          </label>
+          <label>
+            <span>{card.track.label}</span>
+            <input name="track" autocomplete="off" maxlength={LIMITS.track} placeholder={card.track.placeholder} />
+          </label>
+        </div>
+
+        <!-- people never see this field; a bot that fills it in is quietly dropped -->
+        <label class="honey" aria-hidden="true">
+          Website <input name="website" tabindex="-1" autocomplete="off" />
+        </label>
+      </fieldset>
+
+      <div class="captcha" data-captcha></div>
+
+      <div class="after" data-morph="text">
+        <button class="send object chip" type="submit" data-thread="end">
+          <i aria-hidden="true"></i><span data-send-label>{card.send}</span>
+        </button>
+        <p class="status" role="status" data-status></p>
+      </div>
+    </form>
+
+    <!-- beside the card: a margin note on the clock, and the other ways to reach me -->
+    <div class="side">
+      <p
+        class="note clock"
+        data-clock={contact.clock}
+        data-city={site.city}
+        data-zone={site.timeZone}
+        data-asleep={contact.asleep}
+        data-awake={contact.awake}
+        data-morph="text"
+        data-thread="note"
+        hidden
+      >
+      </p>
+      <p class="elsewhere" data-morph="text">
+        {contact.elsewhere}
+        {
+          site.links.map((l, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true">·</span>} <a class="link" href={l.href}>{l.label}</a>
+            </>
+          ))
+        }
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { clockIn, clockParts, isAsleep } from '../lib/clock/clock';
+  import { mountPostcard } from '../lib/contact/postcard';
+
+  const form = document.querySelector<HTMLFormElement>('[data-postcard]');
+  if (form) mountPostcard(form);
+
+  const line = document.querySelector<HTMLElement>('[data-clock]');
+  const postmark = document.querySelector<HTMLElement>('[data-postmark-time]');
+  if (line) {
+    const { clock = '', city = '', zone = '', asleep = '', awake = '' } = line.dataset;
+    const tick = () => {
+      const { time, hour } = clockIn(zone);
+      line.textContent = clock
+        .replace('{time}', time)
+        .replace('{city}', city)
+        .replace('{where}', isAsleep(hour) ? asleep : awake);
+      if (postmark) {
+        const p = clockParts(new Date(), zone);
+        postmark.textContent = `${p.day} ${p.month} ${p.hh}:${p.mm}`;
+      }
+    };
+    tick();
+    line.hidden = false;
+    setInterval(tick, 15_000);
+  }
+</script>
+
+<style>
+  /* the card at postcard proportions on the left; beside it, the other ways to reach me, sitting on the card's
+     bottom edge. The form is display: contents so its card, captcha and Post it row join this grid */
+  .sayhi {
+    display: grid;
+    grid-template-columns: minmax(0, 760px) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "card ."
+      "card side"
+      "captcha ."
+      "after .";
+    column-gap: 56px;
+  }
+
+  .postcard-form {
+    display: contents;
+  }
+
+  /* the card: message on the left, the address side on the right */
+  .postcard {
+    --rule: 46px;
+    grid-area: card;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    min-width: 0;
+    margin: 0;
+    padding: 24px;
+    border-radius: var(--r-card);
+  }
+
+  .postcard:disabled {
+    opacity: 0.75;
+  }
+
+  .message {
+    display: flex;
+    flex-direction: column;
+    padding-right: 26px;
+    border-right: var(--stroke) solid var(--hair);
+  }
+
+  .message label {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  /* writing on ruled lines, in the hand; the lines take the accent while you write.
+     Exactly six lines tall, so a long message scrolls by whole lines and never shows half of one */
+  textarea {
+    --line: var(--hair);
+    flex: 1;
+    height: calc(var(--rule) * 6);
+    padding: 0 2px;
+    border: 0;
+    resize: none;
+    background: repeating-linear-gradient(transparent 0 calc(var(--rule) - 1.5px), var(--line) 0 var(--rule)) local;
+    font: 500 var(--fs-hand) / var(--rule) var(--hand);
+    color: var(--accent);
+  }
+
+  textarea:focus-visible {
+    --line: color-mix(in srgb, var(--accent) 45%, var(--hair));
+  }
+
+  .room {
+    --fill: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+    font: 500 var(--fs-hand) / 1 var(--hand);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .bar {
+    flex: 1;
+    height: 3px;
+    border-radius: var(--r-paper);
+    background: var(--hair);
+    overflow: hidden;
+  }
+
+  .bar i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform: scaleX(var(--fill));
+    transform-origin: left;
+    transition: transform 0.2s;
+  }
+
+  .room[data-near] {
+    color: var(--warn);
+  }
+
+  .room[data-near] .bar i {
+    background: var(--warn);
+  }
+
+  .address {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-left: 26px;
+  }
+
+  .stamps {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    height: 100px;
+  }
+
+  .stamp {
+    width: 78px;
+    height: 92px;
+    padding: 6px;
+    border: var(--stroke) dashed var(--ink-2);
+    background: var(--card-2);
+    border-radius: var(--r-paper);
+    transform: rotate(3deg);
+  }
+
+  .stamp > span {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    border: 1px solid var(--hair);
+    background: var(--paper);
+  }
+
+  /* the stamp is the page's red full stop */
+  .stamp i {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .postmark {
+    position: absolute;
+    top: 18px;
+    right: 58px;
+    z-index: 1;
+    display: grid;
+    place-content: center;
+    width: 96px;
+    height: 96px;
+    border: var(--stroke) solid var(--accent);
+    border-radius: 50%;
+    text-align: center;
+    font: italic 400 var(--fs-micro) / 1.25 var(--text);
+    color: var(--accent);
+    transform: rotate(-12deg);
+  }
+
+  /* the card is picked up: the postmark gives a small stamp wobble */
+  .postcard:is(:hover, :focus-within) .postmark {
+    animation: postmark-wobble 0.5s ease-out;
+  }
+
+  @keyframes postmark-wobble {
+    30% {
+      rotate: -5deg;
+    }
+
+    65% {
+      rotate: 3deg;
+    }
+  }
+
+  .postmark b {
+    font: 400 var(--fs-sm) / 1 var(--display);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .to {
+    margin: 0 0 6px;
+    font: italic 400 var(--fs-xs) / 1.4 var(--text);
+    color: var(--ink-2);
+  }
+
+  .to b {
+    display: block;
+    font: var(--display-weight) var(--fs-lead) / 1.1 var(--display);
+    color: var(--ink);
+  }
+
+  .address label {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    align-items: end;
+    gap: 8px;
+    font: italic 400 var(--fs-xs) / 1.2 var(--label);
+    color: var(--ink-2);
+  }
+
+  .address input {
+    min-width: 0;
+    padding: 2px 2px 4px;
+    border: 0;
+    border-bottom: var(--stroke) solid var(--hair);
+    background: none;
+    font: 500 var(--fs-hand) / 1 var(--hand);
+    color: var(--accent);
+    transition:
+      border-color 0.2s,
+      border-bottom-width 0.2s,
+      padding-bottom 0.2s;
+  }
+
+  /* autofill keeps the card's look: browsers paint their own tint and text colour, so cover both */
+  .address input:is(:autofill, :-webkit-autofill) {
+    -webkit-text-fill-color: var(--accent);
+    box-shadow: 0 0 0 100px var(--card) inset;
+    caret-color: var(--accent);
+  }
+
+  /* placeholders are in the same hand as what you type, only faded */
+  textarea::placeholder,
+  .address input::placeholder {
+    color: var(--ink-2);
+    opacity: 0.6;
+  }
+
+  textarea:focus-visible,
+  .address input:focus-visible {
+    outline: 0;
+    border-color: var(--accent);
+  }
+
+  .address input:focus-visible {
+    padding-bottom: 1px;
+    border-bottom-width: 4.5px;
+  }
+
+  .honey {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .captcha:empty {
+    display: none;
+  }
+
+  .captcha {
+    grid-area: captcha;
+    margin-top: 18px;
+  }
+
+  /* Post it, then one line: how the post went, or else the clock */
+  .after {
+    grid-area: after;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+    margin-top: 30px;
+  }
+
+  .send {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font: 500 var(--fs-sm) / 1 var(--text);
+    color: var(--ink);
+    border-radius: var(--r-pill);
+    padding: 10px 18px 10px 14px;
+    box-shadow: 0 2px 0 var(--ink);
+    cursor: pointer;
+    transition:
+      transform 0.08s,
+      box-shadow 0.08s;
+  }
+
+  .send i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .send:is(:hover, :focus-visible) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--ink);
+  }
+
+  .send:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  [data-state="sending"] .send {
+    cursor: progress;
+  }
+
+  .status {
+    margin: 0;
+    font: italic 400 var(--fs-sm) / 1.4 var(--text);
+    color: var(--accent);
+  }
+
+  .status:empty {
+    display: none;
+  }
+
+  .side {
+    grid-area: side;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 30px;
+  }
+
+  .clock {
+    max-width: 15em;
+    margin: 0;
+    transform: rotate(-2deg);
+    transform-origin: left;
+  }
+
+  :root[data-mode="pixel"] .clock {
+    transform: none;
+  }
+
+  /* a label, then one link per line at reading size */
+  .elsewhere {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .elsewhere a {
+    font-size: var(--fs-lead);
+    color: var(--ink);
+  }
+
+  .elsewhere span {
+    display: none;
+  }
+
+  /* pixel: the same card, stepped */
+  :root[data-mode="pixel"] .postcard {
+    --rule: 47px;
+    padding: 28px;
+  }
+
+  :root[data-mode="pixel"] .message {
+    border-right-width: 3px;
+  }
+
+  :root[data-mode="pixel"] textarea {
+    background: repeating-linear-gradient(transparent 0 calc(var(--rule) - 3px), var(--line) 0 var(--rule)) local;
+  }
+
+  /* pixel: a 4px bar that fills in whole 4px steps */
+  :root[data-mode="pixel"] .bar {
+    height: 4px;
+  }
+
+  :root[data-mode="pixel"] .bar i {
+    transition: transform 0.2s steps(4);
+  }
+
+  :root[data-mode="pixel"] .stamp {
+    border: 3px dashed var(--edge);
+    transform: none;
+  }
+
+  :root[data-mode="pixel"] .stamp i {
+    width: 20px;
+    height: 20px;
+    border-radius: 0;
+    box-shadow:
+      0 0 0 4px var(--paper),
+      0 0 0 7px var(--accent);
+  }
+
+  :root[data-mode="pixel"] .postmark {
+    top: 30px;
+    /* clear of the stamp, so the date never runs under its edge */
+    right: 92px;
+    width: 104px;
+    height: 64px;
+    border: 3px solid var(--accent);
+    border-radius: 0;
+    font: 400 var(--fs-micro) / 1.3 var(--label);
+    transform: none;
+  }
+
+  /* pixel: the same wobble as whole-pixel jolts */
+  :root[data-mode="pixel"] .postcard:is(:hover, :focus-within) .postmark {
+    animation: postmark-jolt 0.36s steps(1);
+  }
+
+  @keyframes postmark-jolt {
+    0% {
+      translate: -3px 0;
+    }
+
+    33% {
+      translate: 3px -3px;
+    }
+
+    66% {
+      translate: 0 3px;
+    }
+  }
+
+  :root[data-mode="pixel"] .postmark b {
+    font: 400 var(--fs-xs) / 1 var(--label);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  :root[data-mode="pixel"] .to {
+    font-style: normal;
+  }
+
+  :root[data-mode="pixel"] .to b {
+    line-height: 1.2;
+  }
+
+  :root[data-mode="pixel"] .address label {
+    grid-template-columns: 104px minmax(0, 1fr);
+    font: 400 var(--fs-micro) / 1.2 var(--label);
+  }
+
+  :root[data-mode="pixel"] .address input {
+    border-bottom: 3px solid var(--hair);
+    transition: none;
+  }
+
+  :root[data-mode="pixel"] .address input:focus-visible {
+    border-bottom-width: 6px;
+  }
+
+  :root[data-mode="pixel"] .send {
+    --object-fill: var(--accent);
+    --object-edge: var(--accent);
+    color: var(--accent-ink);
+    font: 400 var(--fs-sm) / 1 var(--label);
+    padding: 12px 20px;
+    box-shadow: none;
+    transform: none;
+    transition: none;
+  }
+
+  :root[data-mode="pixel"] .send:is(:hover, :focus-visible) {
+    --object-fill: var(--ink);
+    --object-edge: var(--ink);
+  }
+
+  :root[data-mode="pixel"] .send:active {
+    translate: 0 2px;
+  }
+
+  :root[data-mode="pixel"] .send i {
+    width: 8px;
+    height: 8px;
+    border-radius: 0;
+    background: var(--accent-ink);
+  }
+
+  :root[data-mode="pixel"] .status {
+    font-style: normal;
+  }
+
+  /* the card fills the column once there is no room beside it; the links go back under Post it */
+  @media (max-width: 1100px) {
+    .sayhi {
+      grid-template-columns: minmax(0, 760px);
+      grid-template-rows: none;
+      grid-template-areas: "card" "captcha" "after" "side";
+    }
+
+    .side {
+      gap: 18px;
+      margin: 34px 0 22px;
+    }
+
+    .elsewhere {
+      display: block;
+    }
+
+    .elsewhere a {
+      font-size: inherit;
+    }
+
+    .elsewhere span {
+      display: inline;
+      margin: 0 6px;
+      color: var(--hair);
+    }
+  }
+
+  /* a phone: the message side above the address side */
+  @media (max-width: 700px) {
+    .postcard {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 18px;
+    }
+
+    .message {
+      padding: 0 0 18px;
+      border-right: 0;
+      border-bottom: var(--stroke) solid var(--hair);
+    }
+
+    textarea {
+      height: calc(var(--rule) * 4);
+    }
+
+    .address {
+      padding: 18px 0 0;
+    }
+
+    :root[data-mode="pixel"] .postcard {
+      padding: 22px;
+    }
+
+    :root[data-mode="pixel"] .message {
+      border-bottom-width: 3px;
+    }
+  }
+</style>

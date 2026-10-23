@@ -1,0 +1,73 @@
+---
+---
+
+<!-- The red line (ink) or PCB trace (pixel) that runs down the page column; lib/thread draws it. -->
+<svg class="thread" aria-hidden="true">
+  <path data-part="ghost" data-morph="text" class="ghost"></path>
+  <path data-part="cable" class="line cable"></path>
+  <path data-part="ink" class="line"></path>
+  <g data-part="pads" data-morph="text"></g>
+  <rect data-part="tip" class="tip" x="-20" y="-20" width="7" height="7"></rect>
+</svg>
+
+<script>
+  import '../lib/thread/thread';
+</script>
+
+<style>
+  .thread {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+  }
+
+  .line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ghost {
+    display: none;
+    fill: none;
+    stroke: var(--trace);
+  }
+
+  .tip {
+    fill: var(--accent);
+  }
+
+  :root[data-mode="pixel"] :is(.line, .ghost) {
+    display: inline;
+    stroke-width: 5;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+  }
+
+  /* pads are created by lib/thread, so they carry no scope attribute */
+  .thread :global(.pad .plate) {
+    fill: var(--trace);
+  }
+
+  .thread :global(.pad .hole) {
+    fill: var(--paper);
+  }
+
+  .thread :global(.pad .stub) {
+    stroke: var(--trace);
+    stroke-width: 5;
+  }
+
+  .thread :global(.pad.on .plate) {
+    fill: var(--accent);
+  }
+
+  .thread :global(.pad.on .stub) {
+    stroke: var(--accent);
+  }
+</style>
