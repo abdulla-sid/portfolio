@@ -5,6 +5,14 @@ export const site = {
   name: ['Abdullah', 'Siddiqui'],
   /** Also the page's meta description. */
   lede: 'Full-stack and mobile engineer in Lahore. I build healthcare software, and the tools that help me ship it.',
+  /** The link preview (Open Graph): public/social-preview.png, a 1200x630 shot of the hero. */
+  url: 'https://tinydesktop.me/',
+  preview: {
+    image: 'https://tinydesktop.me/social-preview.png',
+    width: 1200,
+    height: 630,
+    alt: "Abdullah Siddiqui's name in serif type, a red pen line running from its full stop into a small clock reading 21:40 in Lahore",
+  },
   timeZone: 'Asia/Karachi',
   city: 'Lahore',
   links: [

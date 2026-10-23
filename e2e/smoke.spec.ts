@@ -259,3 +259,11 @@ for (const url of ['/', '/#pixel']) {
     expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(4);
   });
 }
+
+test('the link preview image is declared and served', async ({ page, request }) => {
+  await page.goto('/');
+  const image = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(image).toMatch(/^https:\/\//);
+  // the tag points at the live domain; the same path must exist in this build
+  expect((await request.get(new URL(image ?? '').pathname)).status()).toBe(200);
+});
