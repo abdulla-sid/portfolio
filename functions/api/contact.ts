@@ -1,7 +1,7 @@
 import { EMAIL_SHAPE, LIMITS } from '../../src/lib/contact/contact';
 
 interface ContactEnvironment {
-  BREVO_API_KEY: string;
+  RESEND_API_KEY: string;
   CONTACT_RECIPIENT: string;
   CONTACT_SENDER: string;
   TURNSTILE_SECRET_KEY: string;
@@ -22,8 +22,7 @@ interface ContactPayload {
 }
 
 const TURNSTILE_VERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-const BREVO_SEND = 'https://api.brevo.com/v3/smtp/email';
-const BREVO_NAME_LIMIT = 70;
+const RESEND_SEND = 'https://api.resend.com/emails';
 
 function response(status: number, error?: string): Response {
   return Response.json(error ? { ok: false, error } : { ok: true }, {
@@ -78,7 +77,7 @@ function normalizedPayload(value: unknown): ContactPayload | null {
 }
 
 function configured(env: ContactEnvironment): boolean {
-  return [env.BREVO_API_KEY, env.CONTACT_RECIPIENT, env.CONTACT_SENDER, env.TURNSTILE_SECRET_KEY].every(
+  return [env.RESEND_API_KEY, env.CONTACT_RECIPIENT, env.CONTACT_SENDER, env.TURNSTILE_SECRET_KEY].every(
     (value) => Boolean(value?.trim()),
   );
 }
@@ -97,24 +96,19 @@ async function verifyTurnstile(token: string, request: Request, env: ContactEnvi
 }
 
 async function deliver(payload: ContactPayload, env: ContactEnvironment): Promise<boolean> {
-  const result = await fetch(BREVO_SEND, {
+  const sender = env.CONTACT_SENDER.trim();
+  const result = await fetch(RESEND_SEND, {
     method: 'POST',
     headers: {
-      'api-key': env.BREVO_API_KEY,
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      sender: {
-        email: env.CONTACT_SENDER,
-        name: 'Tiny Desktop',
-      },
-      to: [{ email: env.CONTACT_RECIPIENT }],
-      replyTo: {
-        email: payload.email,
-        name: payload.name.slice(0, BREVO_NAME_LIMIT),
-      },
+      from: sender.includes('<') ? sender : `Tiny Desktop <${sender}>`,
+      to: [env.CONTACT_RECIPIENT],
+      reply_to: payload.email,
       subject: `Portfolio contact from ${payload.name}`,
-      textContent: [
+      text: [
         `Name: ${payload.name}`,
         `Email: ${payload.email}`,
         ...(payload.track ? [`Track: ${payload.track}`] : []),
@@ -124,8 +118,8 @@ async function deliver(payload: ContactPayload, env: ContactEnvironment): Promis
     }),
   });
   if (!result.ok) return false;
-  const delivery = (await result.json()) as { messageId?: unknown };
-  return typeof delivery.messageId === 'string';
+  const delivery = (await result.json()) as { id?: unknown };
+  return typeof delivery.id === 'string';
 }
 
 export async function onRequestPost({ request, env }: FunctionContext): Promise<Response> {

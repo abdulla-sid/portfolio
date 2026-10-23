@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { onRequestPost } from './contact';
 
 const env = {
-  BREVO_API_KEY: 'brevo-key',
+  RESEND_API_KEY: 'resend-key',
   CONTACT_RECIPIENT: 'private@example.com',
   CONTACT_SENDER: 'contact@tinydesktop.me',
   TURNSTILE_SECRET_KEY: 'turnstile-secret',
@@ -33,7 +33,7 @@ describe('contact Pages Function', () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(Response.json({ success: true }))
-      .mockResolvedValueOnce(Response.json({ messageId: 'brevo-message-id' }, { status: 201 }));
+      .mockResolvedValueOnce(Response.json({ id: 'resend-email-id' }));
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await onRequestPost({ request: request(), env });
@@ -44,17 +44,21 @@ describe('contact Pages Function', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock.mock.calls[0]?.[0]).toBe('https://challenges.cloudflare.com/turnstile/v0/siteverify');
     const [emailUrl, emailInit] = fetchMock.mock.calls[1] as [string, RequestInit];
-    expect(emailUrl).toBe('https://api.brevo.com/v3/smtp/email');
-    expect(emailInit.headers).toMatchObject({ 'api-key': 'brevo-key' });
+    expect(emailUrl).toBe('https://api.resend.com/emails');
+    expect(emailInit.method).toBe('POST');
+    expect(emailInit.headers).toMatchObject({
+      Authorization: 'Bearer resend-key',
+      'Content-Type': 'application/json',
+    });
 
     const body = JSON.parse(emailInit.body as string);
-    expect(Object.keys(body).sort()).toEqual(['replyTo', 'sender', 'subject', 'textContent', 'to']);
-    expect(body.sender).toEqual({
-      email: 'contact@tinydesktop.me',
-      name: 'Tiny Desktop',
+    expect(body).toEqual({
+      from: 'Tiny Desktop <contact@tinydesktop.me>',
+      to: ['private@example.com'],
+      reply_to: 'ada@example.com',
+      subject: 'Portfolio contact from Ada',
+      text: 'Name: Ada\nEmail: ada@example.com\n\nHello there',
     });
-    expect(body.to).toEqual([{ email: 'private@example.com' }]);
-    expect(body.replyTo).toEqual({ email: 'ada@example.com', name: 'Ada' });
   });
 
   it('treats a delivery response carrying no message id as a failure', async () => {
@@ -69,25 +73,42 @@ describe('contact Pages Function', () => {
     expect(result.status).toBe(502);
   });
 
-  it('keeps the reply-to name inside the provider limit', async () => {
+  it('treats a provider error status as a failure', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(Response.json({ success: true }))
-      .mockResolvedValueOnce(Response.json({ messageId: 'brevo-message-id' }, { status: 201 }));
+      .mockResolvedValueOnce(Response.json({ statusCode: 403, name: 'validation_error' }, { status: 403 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await onRequestPost({ request: request(), env });
+
+    expect(result.status).toBe(502);
+  });
+
+  it('passes a sender that already carries a display name through unchanged', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ success: true }))
+      .mockResolvedValueOnce(Response.json({ id: 'resend-email-id' }));
     vi.stubGlobal('fetch', fetchMock);
 
     await onRequestPost({
-      request: request({
-        name: 'A'.repeat(100),
-        email: 'ada@example.com',
-        message: 'Hello there',
-        turnstileToken: 'challenge-token',
-      }),
-      env,
+      request: request(),
+      env: { ...env, CONTACT_SENDER: 'Postbox <onboarding@resend.dev>' },
     });
 
     const [, emailInit] = fetchMock.mock.calls[1] as [string, RequestInit];
-    expect(JSON.parse(emailInit.body as string).replyTo.name).toHaveLength(70);
+    expect(JSON.parse(emailInit.body as string).from).toBe('Postbox <onboarding@resend.dev>');
+  });
+
+  it('closes the postbox when the provider key is missing', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await onRequestPost({ request: request(), env: { ...env, RESEND_API_KEY: '' } });
+
+    expect(result.status).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('rejects invalid input before making external requests', async () => {
