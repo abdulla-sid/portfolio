@@ -15,7 +15,18 @@ export const device = {
     name: 'Coffee',
     when: 'Today',
     more: 'Tap for one more',
-    say: (cups: number) => `Coffee: ${cups} today. Tap the screen to add one.`,
+    /** The bottom line judges the count: the last entry whose `from` the count reaches wins (28 chars max). */
+    verdict: [
+      { from: 2, say: 'Productive' },
+      { from: 3, say: 'Still productive' },
+      { from: 4, say: 'Very productive' },
+      { from: 5, say: 'Suspiciously productive' },
+      { from: 6, say: 'This is a cry for help' },
+      { from: 7, say: 'Hands are vibrating' },
+      { from: 8, say: 'Send help' },
+    ],
+    say: (cups: number, verdict?: string) =>
+      `Coffee: ${cups} today.${verdict ? ` ${verdict}.` : ''} Tap the screen to add one.`,
   },
   reading: {
     name: 'Reading',
