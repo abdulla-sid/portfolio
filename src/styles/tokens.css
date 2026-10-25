@@ -77,20 +77,26 @@
 }
 
 /*
-  PIXEL RULE. One board, few colours, three faces.
-  Palette (every pixel colour is one of these; the LCD, iPod, portrait and map draw from them too):
-    layers   --shadow (screens, drop shadows)  --paper (board)  --card (objects)  --card-2 (raised: buttons, stamps)
-    lines    --hair (rules, unlit traces)  --edge (object frames)
-    text     --ink (primary)  --ink-2 (secondary: meta, captions, idle tabs)
-    accent   --accent (the lit trace, hand notes, selected/primary fills)  --accent-ink (text on an accent fill)
-    warm     --warn, only for "needs you / in progress" (building light, a terminal ask, a nearly full message)
-  Type:
-    --display  Pixelify 700: the name, headings, names on objects (h3, cartridges, the addressee)
-    --hand     Pixelify 500, accent: notes, the lede, what a visitor writes; the terminal (--mono) too
-    --label    Silkscreen 400: every control and tag (tabs, buttons, statuses, field labels, stamps, engravings).
+  PIXEL RULE. One board, two colours, two fonts.
+  Colours: every piece of text, icon, status, highlight and lit line is one of two:
+    --ink      the text colour (primary and secondary alike: meta and captions differ by face and size, not hue)
+    --accent   the lit trace, hand notes, selected/primary fills, states that need you; --accent-soft is its glow
+    Text on an accent fill (--accent-ink) is cut out of it in the board's darkest shade.
+    The rest are quiet shades of the board, never text: --shadow (screens, drop shadows), --paper (board),
+    --card (objects), --card-2 (raised: buttons, stamps), --hair (rules, unlit traces), --edge (object frames).
+    --ink-2 and --warn exist for ink; here they are --ink and --accent. A state that needs telling apart is drawn
+    differently, not coloured differently: in progress is a hollow accent light, a terminal ask an accent block.
+    The LCD, iPod, portrait and map draw from these too.
+  Fonts: two families, each at sizes where its pixels land on whole screen pixels, so it stays crisp.
+    Pixelify   everything you read. 700 is --display: the name (its own thing, rounded to 8px), h2 40/48/56 by
+               width, --fs-h3 24 (h3, the addressee, the map's city), --fs-micro 12 (names on cartridges, the one
+               small size). 500 is --text, --hand and --mono, all at 18 (its stems are 1/9 em: 2px): paragraphs,
+               meta, captions, links, notes, the lede, what a visitor writes, the terminal. Never italic.
+    Silkscreen --label (an 8px grid): --fs-label 16 for every control and tag (tabs, buttons, statuses, pins,
+               field labels); --fs-print 8, its native size, for print on objects (the postmark date, engravings).
                It draws capitals already: no text-transform, no extra tracking.
-               Controls --fs-sm, statuses --fs-xs, field labels, stamps and engravings --fs-micro
-    --text     Schibsted: everything you read in sentences (body, meta, captions, links). Never italic.
+  Not yet on the rule: the LCD and iPod screens draw their own 3x5 bitmap font (lib/canvas/glyphs.ts).
+  No pixel face takes letter-spacing or ligatures; single-line labels sit at line-height 1, running text at 1.25+.
 */
 :root[data-mode="pixel"] {
   color-scheme: dark; /* the browser's own controls (scrollbars, autofill) go dark too */
@@ -99,7 +105,7 @@
   --card-2: #2e2742;
   --dot: var(--card);
   --ink: #ede7f8;
-  --ink-2: #b4abd4;
+  --ink-2: var(--ink); /* two colours: secondary text is the text colour, set apart by face and size */
   --hair: #3a3157;
   --edge: #5a4d85;
   --shadow: #100d1a;
@@ -107,7 +113,7 @@
   --accent-soft: #c6a4ff40;
   --accent-ink: var(--shadow);
   --trace: var(--hair);
-  --warn: #ffb48c;
+  --warn: var(--accent); /* two colours: states that need you use the accent, drawn differently */
 
   --lcd-bg: var(--shadow);
   --lcd-ghost: var(--paper);
@@ -123,7 +129,7 @@
   --map-waterway: var(--edge);
 
   --display: var(--font-pixelify);
-  --text: var(--font-schibsted);
+  --text: var(--font-pixelify);
   --hand: var(--font-pixelify);
   /* Pixelify's 5 reads as S at small sizes; Silkscreen's does not */
   --label: var(--font-silkscreen);
@@ -132,15 +138,18 @@
   --display-scale: 0.9;
   --display-tracking: 0;
 
-  --fs-h2: clamp(40px, 4.4vw, 56px);
-  --fs-h3: 28px;
-  --fs-lead: 20px;
+  --fs-h2: round(down, clamp(40px, 4.4vw, 56px), 8px);
+  --fs-h3: 24px;
+  /* all reading text at one size, where Pixelify 500's stems are 2px */
+  --fs-lead: 18px;
   --fs-body: 18px;
-  --fs-sm: 16px;
-  --fs-xs: 14px;
-  --fs-micro: 11px;
+  --fs-sm: 18px;
+  --fs-xs: 18px;
+  --fs-label: 16px;
+  --fs-micro: 12px;
   --fs-hand: 18px;
-  --fs-hand-lg: 22px;
+  --fs-hand-lg: var(--fs-hand);
+  --fs-print: 8px;
 
   /* pixel is square by design */
   --r-card: 0;

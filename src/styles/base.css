@@ -23,6 +23,16 @@ body {
 
 :root[data-mode="pixel"] body {
   -webkit-font-smoothing: antialiased;
+  /* Pixelify has no italic: never fake one */
+  font-synthesis: none;
+}
+
+/* Pixelify's fi and fl ligatures read as an A. Every component's font: shorthand resets the ligature setting,
+   so this one has to outrank them all */
+:root[data-mode="pixel"] *,
+:root[data-mode="pixel"] ::placeholder {
+  /* biome-ignore lint/complexity/noImportantStyles: see above */
+  font-variant-ligatures: none !important;
 }
 
 a {

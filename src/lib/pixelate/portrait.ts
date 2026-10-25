@@ -4,11 +4,12 @@ import { getSkin, onSkinChange, token } from '../skin';
 const SIZE = 40;
 // the head: a square from 29% across and 10% down, 40% of the photo wide
 const CROP = { x: 0.29, y: 0.1, size: 0.4 };
-// four flat shades from the board, darkest first; the thresholds put the background in the darkest
-const SHADES = ['--card', '--edge', '--ink-2', '--ink'] as const;
+// four flat shades, darkest first: two of the board's, then the accent and the text colour (pixel's two colours);
+// the thresholds put the background in the darkest
+const SHADES = ['--card', '--edge', '--accent', '--ink'] as const;
 const STEPS = [0.28, 0.55, 0.86];
 
-/** In pixel mode, draws the photo `img` into `canvas` as a 40px portrait in four of the board's shades. */
+/** In pixel mode, draws the photo `img` into `canvas` as a 40px portrait in four flat shades. */
 export function mountPortrait(img: HTMLImageElement, canvas: HTMLCanvasElement): void {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return;

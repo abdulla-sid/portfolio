@@ -14,7 +14,7 @@ export const TRACK_SECONDS = 30;
 /** Under this many seconds in, "previous" goes to the previous track instead of restarting this one. */
 const RESTART_AFTER = 3;
 
-/** The one music state shared by the top-bar player, the LCD and the iPod. Change it through player.ts. */
+/** The one music state shared by the LCD's music app and the iPod. Change it through player.ts. */
 export const music = createStore<MusicState>({ track: 0, playing: false, position: 0 });
 
 /** Where skipping by `delta` lands: the next or previous track from the start, or the start of this one. */

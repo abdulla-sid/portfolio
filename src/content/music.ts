@@ -23,9 +23,3 @@ export const playlist: Track[] = [
   { id: 'feel-good-inc', title: 'Feel Good Inc.', artist: 'Gorillaz', itunesId: 850583586 },
   { id: 'not-strong-enough', title: 'Not Strong Enough', artist: 'boygenius', itunesId: 1666138718 },
 ];
-
-/** The top-bar player's words. */
-export const player = {
-  play: 'Play',
-  track: (t: Track) => `${t.title}, ${t.artist}`,
-} as const;

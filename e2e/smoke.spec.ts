@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
+import { device } from '../src/content/device';
 import { ipod } from '../src/content/ipod';
-import { player } from '../src/content/music';
 import { chrome, contact } from '../src/content/site';
 import { SWAP } from '../src/lib/morph/timing';
 import { STORAGE_KEYS } from '../src/lib/skin-keys';
@@ -133,15 +133,17 @@ test('the map loads when Work comes near', async ({ page }) => {
   await expect(page.locator('[data-map]')).toHaveClass(/\bready\b/, { timeout: 20_000 });
 });
 
-test('the top-bar player and the iPod share one music state', async ({ page }) => {
+test("the clock's music app and the iPod share one music state", async ({ page }) => {
   await page.goto('/');
-  const mini = page.locator('[data-mini]').getByRole('button', { name: player.play });
-  await mini.click();
-  await expect(mini).toHaveAttribute('aria-pressed', 'true');
+  await introOver(page);
+  await page.getByRole('button', { name: device.music.name, exact: true }).click();
+  const lcd = page.locator('#device-say');
+  await page.locator('[data-screen]').click();
+  await expect(lcd).toContainText(', playing.');
 
-  // pausing on the iPod pauses the top bar, and the iPod says so
+  // pausing on the iPod pauses the clock's music app, and the iPod says so
   await page.getByRole('button', { name: ipod.keys.play }).click();
-  await expect(mini).toHaveAttribute('aria-pressed', 'false');
+  await expect(lcd).toContainText(', paused.');
   await expect(page.locator('#ipod-say')).toHaveText(/paused\.$/);
 });
 
@@ -234,7 +236,7 @@ for (const url of ['/', '/#pixel']) {
     const small = await page.evaluate(() => {
       const out: string[] = [];
       for (const el of document.querySelectorAll<HTMLElement>(
-        '.mini .pp, .pixelate, .red, .dots button, .key, [role="tab"]',
+        '.pixelate, .red, .dots button, .key, [role="tab"]',
       )) {
         el.scrollIntoView({ block: 'center', behavior: 'instant' });
         const r = el.getBoundingClientRect();

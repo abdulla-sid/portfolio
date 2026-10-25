@@ -55,7 +55,7 @@ Features never import each other's internals. They meet through these:
 | Contract | Provided by | Used by |
 |---|---|---|
 | `onSkinChange` / `setSkin` / `token` (`lib/skin.ts`) | skin | everything that paints |
-| Music store (`lib/music/store.ts`): `{ track, playing, position }` | music | top-bar mini player, LCD music app, iPod |
+| Music store (`lib/music/store.ts`): `{ track, playing, position }` | music | LCD music app, iPod |
 | Music previews: one `<script type="application/json" id="music-previews">` resolved at build time | `MusicData.astro` | music player |
 | `data-thread="..."` anchors: `start` (the full stop), `device-in` (red button), `device-out` (device body), `heading` (headings the line passes), `map` (map area), `jack` (the iPod's earbud jack, where its cable joins), `copy` (the About copy: under it, the cable branches off the gutter), `clear` (the hero text the line must pass under), `shelf` (the projects shelf's objects), `shelf-cap` (their captions), `shelf-text` (the Projects heading and intro, whose text ink's line keeps clear of), `panel` (the open project panel), `note` (the contact clock note, measured without its tilt: ink's line ends in a full stop beside it, pixel's trace too when it sits right of the card), `end` (the contact card's send button) | each section | thread |
 | `data-morph="object"` / `data-morph="text"` on elements that animate in the mode switch; `data-morph-name` on the hero name | each section | morph |
