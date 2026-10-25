@@ -23,7 +23,7 @@ export const device = {
       { from: 5, say: 'Suspiciously productive' },
       { from: 6, say: 'This is a cry for help' },
       { from: 7, say: 'Hands are vibrating' },
-      { from: 8, say: 'The cat is worried' },
+      { from: 8, say: 'Send help' },
     ],
     say: (cups: number, verdict?: string) =>
       `Coffee: ${cups} today.${verdict ? ` ${verdict}.` : ''} Tap the screen to add one.`,

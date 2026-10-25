@@ -21,7 +21,7 @@ describe('coffee verdict', () => {
     expect(verdict(2)).toBe('Productive');
     expect(verdict(4)).toBe('Very productive');
     expect(verdict(6)).toBe('This is a cry for help');
-    expect(verdict(8)).toBe('The cat is worried');
-    expect(verdict(99)).toBe('The cat is worried');
+    expect(verdict(8)).toBe('Send help');
+    expect(verdict(99)).toBe('Send help');
   });
 });
