@@ -143,6 +143,14 @@ const { kind } = Astro.props;
     color: var(--warn);
   }
 
+  /* two colours: the line that needs you is the accent block, not a third colour */
+  :root[data-mode="pixel"] .term .ask {
+    margin: 0 -6px;
+    padding: 0 6px;
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
   .term .you {
     color: var(--ink);
   }
