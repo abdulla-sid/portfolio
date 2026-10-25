@@ -267,3 +267,80 @@ test('the link preview image is declared and served', async ({ page, request }) 
   // the tag points at the live domain; the same path must exist in this build
   expect((await request.get(new URL(image ?? '').pathname)).status()).toBe(200);
 });
+
+for (const url of ['/', '/#pixel']) {
+  test(`${url} moving through the name restores the real heading`, async ({ page }) => {
+    await page.goto(url);
+    await introOver(page);
+    await nameAtRest(page);
+    const heading = page.getByRole('heading', { level: 1 });
+    const text = await heading.textContent();
+    const box = await heading.locator(':scope > span').first().boundingBox();
+    if (!box) throw new Error('Missing name bounds');
+    await page.mouse.move(box.x, box.y + box.height * 0.5);
+    await page.mouse.move(box.x + box.width * 0.7, box.y + box.height * 0.5, { steps: 20 });
+    await expect(page.locator('canvas[data-namehover]').first()).toBeAttached();
+    await page.waitForTimeout(1500);
+    await expect(page.locator('canvas[data-namehover]')).toHaveCount(0);
+    await expect(heading).toBeVisible();
+    expect(await heading.textContent()).toBe(text);
+    expect(await heading.evaluate((el) => getComputedStyle(el).color)).not.toBe('rgba(0, 0, 0, 0)');
+  });
+}
+
+test('name hover yields to replay, resize, and the mode switch', async ({ page }) => {
+  await page.goto('/');
+  await introOver(page);
+  await nameAtRest(page);
+  const heading = page.getByRole('heading', { level: 1 });
+  const layers = page.locator('canvas[data-namehover]');
+  const move = async () => {
+    const box = await heading.boundingBox();
+    if (!box) throw new Error('Missing name bounds');
+    await page.mouse.move(box.x, box.y + box.height * 0.25);
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.25, { steps: 20 });
+    await expect(layers.first()).toBeAttached();
+  };
+  await move();
+  await heading.dispatchEvent('dblclick');
+  await expect(layers).toHaveCount(0);
+  await expect(page.locator('html')).toHaveClass(/\bink-in\b/);
+  await introOver(page);
+  await nameAtRest(page);
+  await move();
+  const viewport = page.viewportSize();
+  if (!viewport) throw new Error('Missing viewport');
+  await page.setViewportSize({ ...viewport, width: viewport.width - 1 });
+  await expect(layers).toHaveCount(0);
+  await move();
+  await page.getByRole('button', { name: ink.action }).dispatchEvent('click');
+  await expect(layers).toHaveCount(0);
+  await morphOver(page);
+  await expect(heading).toBeVisible();
+});
+
+test('name hover ignores touch and a live reduced-motion preference', async ({ page }) => {
+  await page.goto('/');
+  await introOver(page);
+  await nameAtRest(page);
+  const heading = page.getByRole('heading', { level: 1 });
+  const box = await heading.boundingBox();
+  if (!box) throw new Error('Missing name bounds');
+  await page.mouse.move(box.x + 1, box.y + box.height * 0.25);
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.25, { steps: 20 });
+  await expect(page.locator('canvas[data-namehover]').first()).toBeAttached();
+  await heading.dispatchEvent('pointermove', {
+    pointerType: 'touch',
+    clientX: box.x + 10,
+    clientY: box.y + 20,
+  });
+  await heading.dispatchEvent('pointermove', {
+    pointerType: 'touch',
+    clientX: box.x + 60,
+    clientY: box.y + 20,
+  });
+  await expect(page.locator('canvas[data-namehover]')).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height * 0.25, { steps: 20 });
+  await expect(page.locator('canvas[data-namehover]')).toHaveCount(0);
+});

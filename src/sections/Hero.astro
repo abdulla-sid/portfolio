@@ -18,6 +18,15 @@ const [first, last] = site.name;
 
 <script>
   import '../lib/ink-in/ink-in';
+  import { prefersReducedMotion } from '../lib/motion';
+
+  const name = document.querySelector<HTMLElement>('[data-ink-in="name"]');
+  const loadHover = (event: PointerEvent) => {
+    if (event.pointerType === 'touch' || prefersReducedMotion()) return;
+    name?.removeEventListener('pointerenter', loadHover);
+    import('../lib/namehover/namehover');
+  };
+  name?.addEventListener('pointerenter', loadHover, { passive: true });
 </script>
 
 <style>
