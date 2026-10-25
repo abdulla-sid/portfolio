@@ -29,6 +29,7 @@ src/
   styles/                  tokens.css (colours, fonts, sizes), base.css (reset and shared primitives)
   lib/                     client-side behaviour, one folder per feature, no DOM framework
   lib/canvas/              drawing primitives shared by every pixel canvas
+  lib/namehover/           movement-driven wet ink and pixel scatter; motion.ts holds sampling and return maths
   lib/thread/              the page line: geometry.ts (path maths), depth.ts (how much line reaches a scroll depth), thread.ts (DOM)
 functions/api/contact.ts   Cloudflare Pages Function behind the contact card
 e2e/                       Playwright tests
@@ -66,6 +67,8 @@ Features never import each other's internals. They meet through these:
 | `thread` controller (`lib/thread/thread.ts`): `setDrawn(len)`, `length()`, `rebuild()` | thread | morph, ink-in |
 | `lcd` controller (`lib/lcd/controller.ts`): `reboot()` | device | morph |
 | Canvas primitives (`lib/canvas/`): pixel font, sprite painting, play/pause icons, colour reading, palette quantising, the frame loop (`whileVisible(el, (now, ticked) => …)`, `ticked` true once per tick) | canvas | LCD, iPod, portrait |
+| `eachLetter` (`lib/letters.ts`): measures real glyph positions and baselines without changing the text | letters | ink-in, namehover |
+| `data-ink-in="name"`, `INK_IN` (`lib/ink-in/keys.ts`): hero heading and intro state; heading text mutations and running animations hand it to replay/morph | Hero, ink-in, morph | namehover (cancels its overlay immediately) |
 | Contact rules (`lib/contact/contact.ts`): `LIMITS`, `EMAIL_SHAPE` | contact card | contact card, `functions/api/contact.ts` |
 | Clock (`lib/clock/`): cached Lahore time formatters | clock | LCD, contact line |
 
@@ -74,6 +77,14 @@ Features never import each other's internals. They meet through these:
 `lib/morph/morph.ts` runs the choreography (letters deleted, page goes quiet, skin swaps, name retyped, thread
 redrawn, LCD reboots). It calls `setSkin({ mode })` at the swap point. Everything else reacts through
 `onSkinChange`. Under `prefers-reduced-motion` it swaps instantly.
+
+## Name hover
+
+`lib/namehover/namehover.ts` loads when a mouse or pen first enters the heading. It samples the heading on pointer movement: ink drags strokes and a few droplets;
+pixel scatters glyph cells and steps them home. It uses token colours and `onSkinChange`, leaves the full-stop
+anchor alone, and removes its layers to restore real selectable text at rest. Intro/replay, heading mutations,
+running name animations, resize, scrolling and reduced motion cancel the effect. Touch input is ignored.
+There is no idle frame loop; geometry is rebuilt on the next eligible movement.
 
 ## Rules
 
