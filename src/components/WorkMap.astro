@@ -259,7 +259,9 @@ const first = work[0];
     font-style: normal;
   }
 
+  /* [data-mode] keeps it at --fs-h3 on a phone too */
   :root[data-mode="pixel"] .city {
+    font-size: var(--fs-h3);
     font-weight: var(--display-weight);
   }
 
@@ -307,7 +309,7 @@ const first = work[0];
   }
 
   :root[data-mode="pixel"] .map :global(.pin em) {
-    font: 400 var(--fs-xs)/1 var(--label);
+    font: 400 var(--fs-sm)/1 var(--label);
     color: var(--ink-2);
   }
 

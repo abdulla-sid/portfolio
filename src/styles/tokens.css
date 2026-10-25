@@ -84,13 +84,17 @@
     text     --ink (primary)  --ink-2 (secondary: meta, captions, idle tabs)
     accent   --accent (the lit trace, hand notes, selected/primary fills)  --accent-ink (text on an accent fill)
     warm     --warn, only for "needs you / in progress" (building light, a terminal ask, a nearly full message)
-  Type:
-    --display  Pixelify 700: the name, headings, names on objects (h3, cartridges, the addressee)
-    --hand     Pixelify 500, accent: notes, the lede, what a visitor writes; the terminal (--mono) too
-    --label    Silkscreen 400: every control and tag (tabs, buttons, statuses, field labels, stamps, engravings).
+  Type: three faces, each at sizes where its pixels land on whole screen pixels, so it stays crisp.
+    --display  Pixelify 700 (stems 1/8 em: 8px steps are whole pixels on any screen, 4px steps on 2x ones).
+               The name (rounded to 8px), h2 40/48/56 by width, --fs-h3 24 (h3, the addressee, the map's city),
+               --fs-micro 12 (names on cartridges, the one place it has to be small)
+    --hand     Pixelify 500 (stems 1/9 em), one size, --fs-hand 18: notes, the lede, what a visitor writes,
+               the terminal (--mono)
+    --label    Silkscreen 400 (an 8px grid): --fs-sm 16 for every control and tag (tabs, buttons, statuses, pins,
+               field labels); --fs-print 8, its native size, for print on objects (the postmark date, engravings).
                It draws capitals already: no text-transform, no extra tracking.
-               Controls --fs-sm, statuses --fs-xs, field labels, stamps and engravings --fs-micro
     --text     Schibsted: everything you read in sentences (body, meta, captions, links). Never italic.
+  No pixel face takes letter-spacing; single-line labels sit at line-height 1, running text at 1.25 or more.
 */
 :root[data-mode="pixel"] {
   color-scheme: dark; /* the browser's own controls (scrollbars, autofill) go dark too */
@@ -132,15 +136,16 @@
   --display-scale: 0.9;
   --display-tracking: 0;
 
-  --fs-h2: clamp(40px, 4.4vw, 56px);
-  --fs-h3: 28px;
+  --fs-h2: round(down, clamp(40px, 4.4vw, 56px), 8px);
+  --fs-h3: 24px;
   --fs-lead: 20px;
   --fs-body: 18px;
   --fs-sm: 16px;
   --fs-xs: 14px;
-  --fs-micro: 11px;
+  --fs-micro: 12px;
   --fs-hand: 18px;
-  --fs-hand-lg: 22px;
+  --fs-hand-lg: var(--fs-hand);
+  --fs-print: 8px;
 
   /* pixel is square by design */
   --r-card: 0;

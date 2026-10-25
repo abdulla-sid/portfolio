@@ -1,25 +1,21 @@
 ---
-import MiniPlayer from '../components/MiniPlayer.astro';
 import { chrome } from '../content/site';
 
 const { ink, pixel } = chrome.modeSwitch;
 ---
 
 <header class="bar">
-  <div class="right">
-    <MiniPlayer />
-    <button
-      class="pixelate object chip"
-      type="button"
-      aria-label={ink.action}
-      data-pixelate
-      data-ink-action={ink.action}
-      data-pixel-action={pixel.action}
-      data-morph="object"
-    >
-      <i aria-hidden="true"></i><span class="labels"><span class="in-ink">{ink.label}</span><span class="in-pixel">{pixel.label}</span></span>
-    </button>
-  </div>
+  <button
+    class="pixelate object chip"
+    type="button"
+    aria-label={ink.action}
+    data-pixelate
+    data-ink-action={ink.action}
+    data-pixel-action={pixel.action}
+    data-morph="object"
+  >
+    <i aria-hidden="true"></i><span class="in-ink">{ink.label}</span><span class="in-pixel">{pixel.label}</span>
+  </button>
 </header>
 
 <script>
@@ -57,17 +53,7 @@ const { ink, pixel } = chrome.modeSwitch;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 16px;
     height: var(--bar-h);
-    font-size: var(--fs-xs);
-    color: var(--ink-2);
-  }
-
-  .right {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-    min-width: 0;
   }
 
   /* the one mode switch; ink: a pill that presses down */
@@ -76,13 +62,15 @@ const { ink, pixel } = chrome.modeSwitch;
     align-items: center;
     gap: 8px;
     flex: none;
-    /* the same width in both modes (pixel's label is the wider one), so the bar never shifts on a switch */
-    min-width: 108px;
+    /* one fixed box in both modes, sized to the longer label in the wider face (pixel's "Pixelate"),
+       so neither the button nor the bar moves on a switch */
+    width: 128px;
+    height: 34px;
     justify-content: center;
     font: 500 var(--fs-sm) / 1 var(--text);
     color: var(--ink);
     border-radius: var(--r-pill);
-    padding: 7px 14px 7px 10px;
+    padding: 0 14px 0 10px;
     box-shadow: 0 2px 0 var(--ink);
     cursor: pointer;
     transition:
@@ -112,25 +100,16 @@ const { ink, pixel } = chrome.modeSwitch;
       linear-gradient(var(--hair), var(--hair)) 0 6px / 6px 6px no-repeat;
   }
 
-  /* both labels share one cell, so the button is as wide as the longer one in either mode and never jumps */
-  .labels {
-    display: grid;
-    justify-items: center;
-  }
-
-  .labels > span {
-    grid-area: 1 / 1;
-  }
-
+  /* the box is fixed, so only the current label takes part: the square and it sit centred together */
   :root[data-mode="pixel"] .in-ink,
   :root:not([data-mode="pixel"]) .in-pixel {
-    visibility: hidden;
+    display: none;
   }
 
   :root[data-mode="pixel"] .pixelate {
     --object-fill: var(--card-2);
     font: 400 var(--fs-sm) / 1 var(--label);
-    padding: 9px 14px 9px 11px;
+    padding: 0 14px 0 11px;
     box-shadow: none;
     transform: none;
     transition: none;
@@ -153,10 +132,6 @@ const { ink, pixel } = chrome.modeSwitch;
   }
 
   @media (max-width: 700px) {
-    .right {
-      gap: 12px;
-    }
-
     /* a 44px-tall hit area; the pill keeps its size */
     .pixelate::before {
       content: "";

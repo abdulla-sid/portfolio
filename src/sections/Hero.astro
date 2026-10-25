@@ -63,6 +63,8 @@ const [first, last] = site.name;
   }
 
   :root[data-mode="pixel"] .name {
+    /* in whole 8px steps, where Pixelify's stems land on whole pixels */
+    font-size: round(calc(clamp(60px, 9.6vw, 148px) * var(--display-scale)), 8px);
     line-height: 0.92;
     margin-left: -0.02em;
   }
