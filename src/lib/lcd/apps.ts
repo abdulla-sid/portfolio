@@ -91,10 +91,14 @@ const cups = () => {
   return Math.min(99, now.coffeeToday + extra);
 };
 
+/** The clock's opinion of `n` cups, or undefined below the first verdict. */
+export const verdict = (n: number) => device.coffee.verdict.findLast((v) => n >= v.from)?.say;
+const ALARMED = 6; // from here the verdict turns accent colour
+
 const coffee: App = {
   id: 'coffee',
   name: device.coffee.name,
-  say: () => device.coffee.say(cups()),
+  say: () => device.coffee.say(cups(), verdict(cups())),
   tap() {
     if (cups() >= 99) return;
     extra = (extra ?? 0) + 1;
@@ -109,7 +113,7 @@ const coffee: App = {
     f.p.sprite(STEAM[f.still ? 0 : (f.t >> 2) & 1] ?? [], 10, 20, { '#': f.c.dim }, 2);
     f.p.sprite(CUP, 6, 28, { '#': f.c.fg, o: f.c.accent }, 2);
     f.p.big(String(cups()).padStart(2, '0'), 62, 22, f.c.fg, f.c.ghost);
-    centred(f, device.coffee.more, 66, f.c.mid);
+    centred(f, verdict(cups()) ?? device.coffee.more, 66, cups() >= ALARMED ? f.c.accent : f.c.mid);
   },
 };
 
